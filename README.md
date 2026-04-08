@@ -2,7 +2,7 @@
 
 ## Overview
 
-A grid-based puzzle game inspired by Mahjong. It is originated in Hunan, China.
+A grid-based puzzle game inspired by Mahjong.
 The player is presented with a randomized board of tiles and must clear all tiles using matching and movement mechanics.
 
 ---
@@ -14,7 +14,7 @@ The player is presented with a randomized board of tiles and must clear all tile
 - The game is played on a grid-based board (default size: 17 × 8).
 - Each cell contains either:
   - a **tile** (face-up Mahjong piece), or
-  - a **path** (fliped / cleared tile).
+  - a **path** (flipped / cleared tile).
 - All elements are aligned to fixed grid positions.
 
 ---
@@ -58,10 +58,10 @@ After the movement:
 
 This project rebuilds an earlier prototype with a focus on:
 
-- clean separation of gameplay systems  
-- reliable grid-based movement logic  
-- accurate move validation and reversal  
-- improved input handling and visual feedback  
+- clean separation of gameplay systems
+- reliable grid-based movement logic
+- accurate move validation and reversal
+- improved input handling and visual feedback
 
 ---
 
@@ -79,4 +79,4 @@ _tba_
 
 ## Demo (Old Prototype)
 
-https://www.youtube.com/embed/t9qz355X4n8?si=Q087Ax0k_4AKgBj1
+https://www.youtube.com/watch?v=t9qz355X4n8
