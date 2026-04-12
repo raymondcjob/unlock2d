@@ -1,20 +1,21 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class TileView : MonoBehaviour
 {
     [SerializeField] private SpriteRenderer spriteRenderer;
-    
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
 
-    // Update is called once per frame
-    void Update()
+    public Vector2Int GridPosition { get; private set; }
+    public int TileTypeId { get; private set; }
+
+    public void Initialize(Sprite sprite, int tileTypeId, Vector2Int gridPosition)
     {
-        
+        if (spriteRenderer == null)
+        {
+            spriteRenderer = GetComponent<SpriteRenderer>();
+        }
+
+        spriteRenderer.sprite = sprite;
+        TileTypeId = tileTypeId;
+        GridPosition = gridPosition;
     }
 }
