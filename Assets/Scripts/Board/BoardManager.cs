@@ -6,8 +6,13 @@ public class BoardManager : MonoBehaviour
     [Header("Board Settings")]
     [SerializeField] private int boardWidth = 17;
     [SerializeField] private int boardHeight = 8;
-    [SerializeField] private float tileSpacingX = 0.64f;
-    [SerializeField] private float tileSpacingY = 0.86f;
+
+    [Header("Base Layout Tuning")]
+    [SerializeField] private float baseTileScale = 0.2f;
+    [SerializeField] private float baseTileSpacingX = 0.64f;
+    [SerializeField] private float baseTileSpacingY = 0.86f;
+    private float tileSpacingX;
+    private float tileSpacingY;
     [SerializeField] private Vector2 boardOrigin = Vector2.zero;
 
     [Header("References")]
@@ -28,6 +33,7 @@ public class BoardManager : MonoBehaviour
     public void GenerateBoard()
     {
         ClearBoard();
+        CalculateSpacingFromPrefabScale();
 
         int totalCells = boardWidth * boardHeight;
         int requiredTileCount = tileSprites.Length * 4;
@@ -128,6 +134,28 @@ public class BoardManager : MonoBehaviour
             Sprite = sprite;
             TileTypeId = tileTypeId;
         }
+    }
+
+    private void CalculateSpacingFromPrefabScale()
+    {
+        float currentScaleX = tilePrefab.transform.localScale.x;
+        float currentScaleY = tilePrefab.transform.localScale.y;
+
+        if (Mathf.Approximately(baseTileScale, 0f))
+        {
+            Debug.LogError("Base tile scale cannot be 0.");
+            tileSpacingX = baseTileSpacingX;
+            tileSpacingY = baseTileSpacingY;
+            return;
+        }
+
+        float scaleRatioX = currentScaleX / baseTileScale;
+        float scaleRatioY = currentScaleY / baseTileScale;
+
+        tileSpacingX = baseTileSpacingX * scaleRatioX;
+        tileSpacingY = baseTileSpacingY * scaleRatioY;
+
+        Debug.Log($"Prefab scale: ({currentScaleX}, {currentScaleY}), spacing: ({tileSpacingX}, {tileSpacingY})");
     }
 
     
