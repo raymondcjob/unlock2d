@@ -246,5 +246,10 @@ public class BoardManager : MonoBehaviour
     {
         return tileSpacingY;
     }
+
+    public bool HasTileAt(Vector2Int position)
+    {
+        return GetTileAt(position) != null;
+    }
     
 }

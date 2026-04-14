@@ -7,6 +7,7 @@ public class TileView : MonoBehaviour
 
     [Header("Visual Settings")]
     [SerializeField] private float enlargedScaleMultiplier = 1.15f;
+    
 
     private Vector3 originalScale;
 
@@ -72,6 +73,16 @@ public class TileView : MonoBehaviour
     public Sprite GetSprite()
     {
         return TileSprite;
+    }
+
+    public void SetCustomScale(float scaleMultiplier, int sortingOrderOffset = 1)
+    {
+        transform.localScale = originalScale * scaleMultiplier;
+
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.sortingOrder = originalSortingOrder + sortingOrderOffset;
+        }
     }
 
 }

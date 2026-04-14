@@ -7,6 +7,7 @@ public class BoardInteractionController : MonoBehaviour
     [SerializeField] private Camera mainCamera;
     [SerializeField] private BoardManager boardManager;
     [SerializeField] private DragPreviewController dragPreviewController;
+    [SerializeField] private MatchValidator matchValidator;
 
     [Header("Input Settings")]
     [SerializeField] private float dragThreshold = 0.2f;
@@ -15,9 +16,11 @@ public class BoardInteractionController : MonoBehaviour
     private Vector3 pointerDownWorldPosition;
     private bool isPointerHeld;
     private bool isDragging;
+    private bool isAwaitingMatchChoice;
     private Vector2Int currentDragDirection = Vector2Int.zero;
 
     private List<TileView> enlargedTiles = new List<TileView>();
+    private List<TileView> currentMatchChoices = new List<TileView>();
 
     private void Update()
     {
@@ -51,6 +54,12 @@ public class BoardInteractionController : MonoBehaviour
     {
         Vector3 worldPosition = GetMouseWorldPosition();
         TileView clickedTile = GetTileUnderPointer(worldPosition);
+
+        if (isAwaitingMatchChoice)
+        {
+            HandleMatchChoiceClick(clickedTile);
+            return;
+        }
 
         if (clickedTile == null)
         {
@@ -112,7 +121,34 @@ public class BoardInteractionController : MonoBehaviour
 
     private void OnPointerUp()
     {
-        ClearInteractionVisuals();
+        if (!isDragging && activeTile != null && matchValidator != null)
+        {
+            List<TileView> candidates = matchValidator.GetMatchCandidates(activeTile);
+
+            ClearInteractionVisuals();
+
+            if (candidates.Count == 0)
+            {
+                Debug.Log($"No valid matches");
+            }
+            else if (candidates.Count == 1)
+            {
+                Debug.Log($"Confirmed match: {activeTile.name} with {candidates[0].name}");
+                ResetInteractionState();
+                return;
+            } else if (candidates.Count > 1)
+            {
+                EnterMatchChoiceState(candidates);
+                isPointerHeld = false;
+                isDragging = false;
+                currentDragDirection = Vector2Int.zero;
+                return;
+            }
+        } else
+        {
+            ClearInteractionVisuals();
+        }
+
         ResetInteractionState();
     }
 
@@ -150,7 +186,7 @@ public class BoardInteractionController : MonoBehaviour
         {
             if (tile != null)
             {
-                tile.SetEnlarged(false);
+                tile.ResetVisual();
             }
         }
 
@@ -162,6 +198,7 @@ public class BoardInteractionController : MonoBehaviour
         activeTile = null;
         isPointerHeld = false;
         isDragging = false;
+        isAwaitingMatchChoice = false;
         currentDragDirection = Vector2Int.zero;
     }
 
@@ -238,4 +275,67 @@ public class BoardInteractionController : MonoBehaviour
         int step = Mathf.Clamp(Mathf.FloorToInt(distance / spacing) + 1, 1, maxPreviewSteps);
         return step;
     }
+
+    private void EnterMatchChoiceState(List<TileView> candidates)
+    {
+        isAwaitingMatchChoice = true;
+        currentMatchChoices.Clear();
+        currentMatchChoices.AddRange(candidates);
+
+        if (activeTile != null)
+        {
+            activeTile.SetCustomScale(1.15f, 3);
+            enlargedTiles.Add(activeTile);
+        }
+
+        foreach (TileView tile in currentMatchChoices)
+        {
+            if (tile != null)
+            {
+                tile.SetCustomScale(1.075f, 2);
+                enlargedTiles.Add(tile);
+            }
+        }
+
+        Debug.Log($"Awaiting match choice for {activeTile.name}. Valid choices: {currentMatchChoices.Count}");
+    }
+
+    private void HandleMatchChoiceClick(TileView clickedTile)
+    {
+        if (activeTile == null)
+        {
+            CancelMatchChoice();
+            return;
+        }
+
+        if (clickedTile != null && currentMatchChoices.Contains(clickedTile))
+        {
+            Debug.Log($"Confirmed match: {activeTile.name} with {clickedTile.name}");
+            ExitMatchChoiceState();
+            return;
+        }
+
+        Debug.Log("Match choice cancelled.");
+        CancelMatchChoice();
+    }
+
+    private void CancelMatchChoice()
+    {
+        ExitMatchChoiceState();
+    }
+
+    private void ExitMatchChoiceState()
+    {
+        ClearInteractionVisuals();
+        currentMatchChoices.Clear();
+        ResetInteractionState();
+    }
+
+    public void ForceClearInteractionState()
+    {
+        ClearInteractionVisuals();
+        currentMatchChoices.Clear();
+        ResetInteractionState();
+    }
+
 }
