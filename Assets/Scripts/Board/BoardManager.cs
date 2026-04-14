@@ -20,10 +20,11 @@ public class BoardManager : MonoBehaviour
     [SerializeField] private Transform tileContainer;
 
     [Header("Tile Sprites")]
-    [SerializeField] private Sprite[] tileSprites; // Must contain exactly 34 sprites
+    [SerializeField] private Sprite[] tileSprites;
     [SerializeField] private Sprite backTileSprite;
 
     private TileView[,] boardTiles;
+    private readonly List<TileView> spawnedTiles = new List<TileView>();
 
     private void Start()
     {
@@ -40,7 +41,7 @@ public class BoardManager : MonoBehaviour
 
         if (tileSprites == null || tileSprites.Length != 34)
         {
-            Debug.LogError("BoardManager requires exactly 34 tile sprites.");
+            Debug.LogError("BoardManager only supports exactly 34 tile sprites for now.");
             return;
         }
 
@@ -67,9 +68,77 @@ public class BoardManager : MonoBehaviour
                 spawnedTile.Initialize(entry.Sprite, entry.TileTypeId, new Vector2Int(x, y));
 
                 boardTiles[x, y] = spawnedTile;
+                spawnedTiles.Add(spawnedTile);
                 index++;
             }
         }
+    }
+
+    public List<TileView> GetTilesOfSameType(int tileTypeId, TileView excludeTile = null)
+    {
+        List<TileView> result = new List<TileView>();
+
+        foreach (TileView tile in spawnedTiles)
+        {
+            if (tile == null)
+            {
+                continue;
+            }
+
+            if (tile == excludeTile)
+            {
+                continue;
+            }
+
+            if (tile.TileTypeId == tileTypeId)
+            {
+                result.Add(tile);
+            }
+        }
+
+        return result;
+    }
+
+    public List<TileView> GetConnectedTilesInDirection(TileView activeTile, Vector2Int direction)
+    {
+        List<TileView> connectedTiles = new List<TileView>();
+
+        if (activeTile == null || direction == Vector2Int.zero)
+        {
+            return connectedTiles;
+        }
+
+        Vector2Int current = activeTile.GridPosition + direction;
+
+        while (IsInsideBoard(current))
+        {
+            TileView tile = GetTileAt(current);
+
+            if (tile == null)
+            {
+                break;
+            }
+
+            connectedTiles.Add(tile);
+            current += direction;
+        }
+
+        return connectedTiles;
+    }
+
+    public TileView GetTileAt(Vector2Int position)
+    {
+        if (!IsInsideBoard(position) || boardTiles == null)
+        {
+            return null;
+        }
+
+        return boardTiles[position.x, position.y];
+    }
+
+    public Vector3 GetWorldPosition(Vector2Int gridPosition)
+    {
+        return GetWorldPosition(gridPosition.x, gridPosition.y);
     }
 
     private List<TileEntry> BuildShuffledTileList()
@@ -111,6 +180,14 @@ public class BoardManager : MonoBehaviour
         );
     }
 
+    public bool IsInsideBoard(Vector2Int position)
+    {
+        return position.x >= 0 &&
+               position.x < boardWidth &&
+               position.y >= 0 &&
+               position.y < boardHeight;
+    }
+
     private void ClearBoard()
     {
         if (tileContainer == null)
@@ -122,6 +199,8 @@ public class BoardManager : MonoBehaviour
         {
             Destroy(tileContainer.GetChild(i).gameObject);
         }
+
+        spawnedTiles.Clear();
     }
 
     private struct TileEntry
@@ -157,6 +236,15 @@ public class BoardManager : MonoBehaviour
 
         Debug.Log($"Prefab scale: ({currentScaleX}, {currentScaleY}), spacing: ({tileSpacingX}, {tileSpacingY})");
     }
+    
+    public float GetTileSpacingX()
+    {
+        return tileSpacingX;
+    }
 
+    public float GetTileSpacingY()
+    {
+        return tileSpacingY;
+    }
     
 }
