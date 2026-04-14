@@ -528,13 +528,48 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   boardWidth: 17
   boardHeight: 8
-  tileSpacingX: 1
-  tileSpacingY: 1.4
+  baseTileScale: 0.2
+  baseTileSpacingX: 0.64
+  baseTileSpacingY: 0.86
   boardOrigin: {x: 0, y: 0}
-  tilePrefab: {fileID: 0}
-  tileContainer: {fileID: 0}
-  tileSprites: []
-  backTileSprite: {fileID: 0}
+  tilePrefab: {fileID: 1211515443965400861, guid: 69cad1fe55101eb4a9df0d621995734f, type: 3}
+  tileContainer: {fileID: 381001747}
+  tileSprites:
+  - {fileID: 21300000, guid: 307052fc75070bd4488bdbcf4be95051, type: 3}
+  - {fileID: 21300000, guid: 4452589a4aa9b8740aa695a02dcae08d, type: 3}
+  - {fileID: 21300000, guid: 2ecf13a9f8908bb4d927d6750e27950e, type: 3}
+  - {fileID: 21300000, guid: 634ab18e21b4d564f9fecbb26512e4c1, type: 3}
+  - {fileID: 21300000, guid: 40e6bb2361782014bab2af8bb628d1d1, type: 3}
+  - {fileID: 21300000, guid: bef1dcb30406dc64d8a1b0ca57c16f00, type: 3}
+  - {fileID: 21300000, guid: 358b98f9809f91e4ba5f547af9ca355d, type: 3}
+  - {fileID: 21300000, guid: 679712bdaf3c2114dbe9cbe70f105a09, type: 3}
+  - {fileID: 21300000, guid: 9de9eb6c51a91b04a9fdae19a5da0e95, type: 3}
+  - {fileID: 21300000, guid: d871a01d4f0a92a409e56b0e5062e84a, type: 3}
+  - {fileID: 21300000, guid: 6ee81facf3e315d4aa8588e654604dce, type: 3}
+  - {fileID: 21300000, guid: 299a21f6fefe74a4db09fb3c3563ad98, type: 3}
+  - {fileID: 21300000, guid: b6f6d7a792839d34fb3d13682480c6f1, type: 3}
+  - {fileID: 21300000, guid: 4463474f1a75e1246ba783290d6b7366, type: 3}
+  - {fileID: 21300000, guid: 5687db899ea35bf42909caf3dd80b6f7, type: 3}
+  - {fileID: 21300000, guid: c948f525902dcd94691f611df368a570, type: 3}
+  - {fileID: 21300000, guid: 23452a3fa5d23694da885eafd06fd375, type: 3}
+  - {fileID: 21300000, guid: 45e2227c03471a24a9964f2238d2e668, type: 3}
+  - {fileID: 21300000, guid: 67153a92b94d36942acedda73b035157, type: 3}
+  - {fileID: 21300000, guid: de6272ef0d1333047aa010641f586ff5, type: 3}
+  - {fileID: 21300000, guid: afc2d943c5daaf44d91c4b88b8337dbc, type: 3}
+  - {fileID: 21300000, guid: 91722ddfd9ecc39429f19f1fdfd7caed, type: 3}
+  - {fileID: 21300000, guid: 0d54d629142a6234f81d4f1655adfeeb, type: 3}
+  - {fileID: 21300000, guid: 9e9ad07fa88d92941ab31a74d245d21c, type: 3}
+  - {fileID: 21300000, guid: 9542b3a309cd1d547bdb00baac1dca31, type: 3}
+  - {fileID: 21300000, guid: 0fe4438f35e11dd44a52ab1c2418219c, type: 3}
+  - {fileID: 21300000, guid: 5bba655161e335348bd298251b66a2b1, type: 3}
+  - {fileID: 21300000, guid: decedd5a9791e19419861a7938f8ef9f, type: 3}
+  - {fileID: 21300000, guid: 11ddbbaef2eb6e245897cb0ddc0c6be2, type: 3}
+  - {fileID: 21300000, guid: 9c1d755a0c0296a4f8bb195f67be24ae, type: 3}
+  - {fileID: 21300000, guid: 9cf841053b32e7341842678ff1b9c5ef, type: 3}
+  - {fileID: 21300000, guid: a26422c59195e3a4eade8ba5898460ca, type: 3}
+  - {fileID: 21300000, guid: 68700cc59c037f646bbe89225a211cd4, type: 3}
+  - {fileID: 21300000, guid: bd5abe410ff59b64d90936df386463c8, type: 3}
+  backTileSprite: {fileID: 21300000, guid: f16ec7222f20a59449f8bbc615e9e075, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
