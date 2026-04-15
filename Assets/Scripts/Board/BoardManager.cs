@@ -139,6 +139,99 @@ public class BoardManager : MonoBehaviour
         return connectedTiles;
     }
 
+    public int GetMaxMoveSteps(TileView activeTile, List<TileView> connectedTiles, Vector2Int direction)
+    {
+        if (activeTile == null || activeTile.IsPath || direction == Vector2Int.zero)
+        {
+            return 0;
+        }
+
+        TileView frontTile = connectedTiles.Count > 0
+            ? connectedTiles[connectedTiles.Count - 1]
+            : activeTile;
+
+        Vector2Int checkPosition = frontTile.GridPosition + direction;
+        int steps = 0;
+
+        while (IsInsideBoardPosition(checkPosition) && IsPathAt(checkPosition))
+        {
+            steps++;
+            checkPosition += direction;
+        }
+
+        return steps;
+    }
+
+    public void MoveTileGroup(TileView activeTile, List<TileView> connectedTiles, Vector2Int direction, int steps)
+    {
+        if (activeTile == null || activeTile.IsPath || direction == Vector2Int.zero || steps <= 0)
+        {
+            return;
+        }
+
+        List<TileView> movingTiles = new List<TileView> { activeTile };
+        movingTiles.AddRange(connectedTiles);
+
+        List<Vector2Int> originalPositions = new List<Vector2Int>();
+        foreach (TileView tile in movingTiles)
+        {
+            originalPositions.Add(tile.GridPosition);
+        }
+
+        Vector2Int originalActivePosition = activeTile.GridPosition;
+
+        TileView frontTile = connectedTiles.Count > 0
+            ? connectedTiles[connectedTiles.Count - 1]
+            : activeTile;
+
+        List<TileView> pathTilesToRecycle = new List<TileView>();
+
+        for (int step = 1; step <= steps; step++)
+        {
+            Vector2Int pathPosition = frontTile.GridPosition + direction * step;
+            TileView pathTile = GetTileAt(pathPosition);
+
+            if (pathTile == null || !pathTile.IsPath)
+            {
+                Debug.LogError($"Expected a path tile at {pathPosition} while moving.");
+                return;
+            }
+
+            pathTilesToRecycle.Add(pathTile);
+        }
+
+        foreach (Vector2Int position in originalPositions)
+        {
+            boardTiles[position.x, position.y] = null;
+        }
+
+        foreach (TileView pathTile in pathTilesToRecycle)
+        {
+            Vector2Int oldPathPosition = pathTile.GridPosition;
+            boardTiles[oldPathPosition.x, oldPathPosition.y] = null;
+        }
+
+        for (int i = 0; i < movingTiles.Count; i++)
+        {
+            TileView tile = movingTiles[i];
+            Vector2Int newPosition = originalPositions[i] + direction * steps;
+
+            boardTiles[newPosition.x, newPosition.y] = tile;
+            tile.SetGridPosition(newPosition);
+            tile.SetWorldPosition(GetWorldPosition(newPosition));
+        }
+
+        for (int i = 0; i < steps; i++)
+        {
+            TileView pathTile = pathTilesToRecycle[i];
+            Vector2Int fillPosition = originalActivePosition + direction * i;
+
+            boardTiles[fillPosition.x, fillPosition.y] = pathTile;
+            pathTile.SetGridPosition(fillPosition);
+            pathTile.SetWorldPosition(GetWorldPosition(fillPosition));
+        }
+    }
+
     public TileView GetTileAt(Vector2Int position)
     {
         if (!IsInsideBoardPosition(position) || boardTiles == null)
@@ -169,7 +262,7 @@ public class BoardManager : MonoBehaviour
     public bool IsPathAt(Vector2Int position)
     {
         TileView tile = GetTileAt(position);
-        return tile != null && tile.IsPath;
+        return tile == null || tile.IsPath;
     }
 
     public bool IsInsideBoardPosition(Vector2Int position)

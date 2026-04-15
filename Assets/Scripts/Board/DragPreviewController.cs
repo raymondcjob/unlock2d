@@ -26,7 +26,7 @@ public class DragPreviewController : MonoBehaviour
         List<TileView> tilesToClone = new List<TileView> { activeTile };
         tilesToClone.AddRange(connectedTiles);
 
-        Vector3 directionOffset = new Vector3(direction.x, direction.y, 0f) * previewDistance;
+        Vector3 directionOffset = GetWorldDirectionOffset(direction, previewDistance);
 
         foreach (TileView sourceTile in tilesToClone)
         {
@@ -53,6 +53,22 @@ public class DragPreviewController : MonoBehaviour
         }
 
         activeClones.Clear();
+    }
+
+    private Vector3 GetWorldDirectionOffset(Vector2Int gridDirection, float distance)
+    {
+        Vector3 worldDirection = Vector3.zero;
+
+        if (gridDirection.x != 0)
+        {
+            worldDirection = new Vector3(gridDirection.x, 0f, 0f);
+        }
+        else if (gridDirection.y != 0)
+        {
+            worldDirection = new Vector3(0f, -gridDirection.y, 0f);
+        }
+
+        return worldDirection * distance;
     }
 
     private void ApplyCloneVisual(TileView clone)

@@ -11,6 +11,7 @@ public class BoardInteractionController : MonoBehaviour
 
     [Header("Input Settings")]
     [SerializeField] private float dragThreshold = 0.2f;
+    [SerializeField] private float moveCommitThresholdRatio = 0.5f;
 
     private TileView activeTile;
     private Vector3 pointerDownWorldPosition;
@@ -18,6 +19,7 @@ public class BoardInteractionController : MonoBehaviour
     private bool isDragging;
     private bool isAwaitingMatchChoice;
     private Vector2Int currentDragDirection = Vector2Int.zero;
+    private float currentPreviewDistance;
 
     private readonly List<TileView> enlargedTiles = new List<TileView>();
     private readonly List<TileView> currentMatchChoices = new List<TileView>();
@@ -74,6 +76,7 @@ public class BoardInteractionController : MonoBehaviour
         isPointerHeld = true;
         isDragging = false;
         currentDragDirection = Vector2Int.zero;
+        currentPreviewDistance = 0f;
 
         ShowSameTypeEnlargement(activeTile);
     }
@@ -99,21 +102,26 @@ public class BoardInteractionController : MonoBehaviour
         {
             ClearDragVisuals();
             currentDragDirection = Vector2Int.zero;
+            currentPreviewDistance = 0f;
             return;
         }
 
         currentDragDirection = direction;
 
         List<TileView> connectedTiles = boardManager.GetConnectedTilesInDirection(activeTile, currentDragDirection);
-        float maxPreviewDistance = GetMaxPreviewDistance(activeTile, connectedTiles, currentDragDirection);
+        int maxMoveSteps = boardManager.GetMaxMoveSteps(activeTile, connectedTiles, currentDragDirection);
 
-        if (maxPreviewDistance <= 0f)
+        if (maxMoveSteps <= 0)
         {
             ClearDragVisuals();
+            currentPreviewDistance = 0f;
             return;
         }
 
+        float maxPreviewDistance = GetDistanceForSteps(currentDragDirection, maxMoveSteps);
         float previewDistance = GetPreviewDistanceFromPointer(dragDelta, currentDragDirection, maxPreviewDistance);
+
+        currentPreviewDistance = previewDistance;
 
         ShowDragSourceTint(activeTile, connectedTiles);
         dragPreviewController.ShowPreview(activeTile, connectedTiles, currentDragDirection, previewDistance, boardManager);
@@ -121,7 +129,42 @@ public class BoardInteractionController : MonoBehaviour
 
     private void OnPointerUp()
     {
-        if (!isDragging && activeTile != null && matchValidator != null)
+        if (isDragging)
+        {
+            bool moveResolved = TryResolveDragMove();
+
+            ClearInteractionVisuals();
+
+            if (!moveResolved)
+            {
+                ResetInteractionState();
+                return;
+            }
+
+            List<TileView> candidates = matchValidator.GetMatchCandidates(activeTile);
+
+            if (candidates.Count == 1)
+            {
+                boardManager.ResolveMatch(activeTile, candidates[0]);
+                ResetInteractionState();
+                return;
+            }
+
+            if (candidates.Count > 1)
+            {
+                EnterMatchChoiceState(candidates);
+                isPointerHeld = false;
+                isDragging = false;
+                currentDragDirection = Vector2Int.zero;
+                currentPreviewDistance = 0f;
+                return;
+            }
+
+            ResetInteractionState();
+            return;
+        }
+
+        if (activeTile != null && matchValidator != null)
         {
             List<TileView> candidates = matchValidator.GetMatchCandidates(activeTile);
 
@@ -140,6 +183,7 @@ public class BoardInteractionController : MonoBehaviour
                 isPointerHeld = false;
                 isDragging = false;
                 currentDragDirection = Vector2Int.zero;
+                currentPreviewDistance = 0f;
                 return;
             }
         }
@@ -149,6 +193,89 @@ public class BoardInteractionController : MonoBehaviour
         }
 
         ResetInteractionState();
+    }
+
+    private bool TryResolveDragMove()
+    {
+        if (activeTile == null || activeTile.IsPath || currentDragDirection == Vector2Int.zero)
+        {
+            return false;
+        }
+
+        List<TileView> connectedTiles = boardManager.GetConnectedTilesInDirection(activeTile, currentDragDirection);
+        int maxMoveSteps = boardManager.GetMaxMoveSteps(activeTile, connectedTiles, currentDragDirection);
+
+        if (maxMoveSteps <= 0)
+        {
+            return false;
+        }
+
+        int chosenSteps = GetCommittedStepCount(currentDragDirection, currentPreviewDistance, maxMoveSteps);
+
+        if (chosenSteps <= 0)
+        {
+            return false;
+        }
+
+        List<TileView> currentMatches = matchValidator.GetMatchCandidates(activeTile);
+
+        List<TileView> movedGroup = new List<TileView> { activeTile };
+        movedGroup.AddRange(connectedTiles);
+
+        Vector2Int projectedPosition = activeTile.GridPosition + currentDragDirection * chosenSteps;
+
+        List<TileView> projectedMatches = matchValidator.GetProjectedMatchCandidates(
+            activeTile,
+            projectedPosition,
+            movedGroup,
+            currentDragDirection,
+            chosenSteps);
+
+        if (projectedMatches.Count == 0)
+        {
+            return false;
+        }
+
+        bool createsNewMatch = false;
+
+        foreach (TileView projectedMatch in projectedMatches)
+        {
+            if (!currentMatches.Contains(projectedMatch))
+            {
+                createsNewMatch = true;
+                break;
+            }
+        }
+
+        if (!createsNewMatch)
+        {
+            return false;
+        }
+
+        boardManager.MoveTileGroup(activeTile, connectedTiles, currentDragDirection, chosenSteps);
+        return true;
+    }
+
+    private int GetCommittedStepCount(Vector2Int direction, float previewDistance, int maxMoveSteps)
+    {
+        float spacing = direction.x != 0
+            ? boardManager.GetTileSpacingX()
+            : boardManager.GetTileSpacingY();
+
+        if (spacing <= 0f)
+        {
+            return 0;
+        }
+
+        int fullSteps = Mathf.FloorToInt(previewDistance / spacing);
+        float remainder = previewDistance - fullSteps * spacing;
+
+        if (remainder >= spacing * moveCommitThresholdRatio)
+        {
+            fullSteps++;
+        }
+
+        return Mathf.Clamp(fullSteps, 0, maxMoveSteps);
     }
 
     private void EnterMatchChoiceState(List<TileView> candidates)
@@ -302,6 +429,7 @@ public class BoardInteractionController : MonoBehaviour
         isDragging = false;
         isAwaitingMatchChoice = false;
         currentDragDirection = Vector2Int.zero;
+        currentPreviewDistance = 0f;
     }
 
     private TileView GetTileUnderPointer(Vector3 worldPosition)
@@ -334,43 +462,19 @@ public class BoardInteractionController : MonoBehaviour
 
         if (Mathf.Abs(dragDelta.y) > 0f)
         {
-            return dragDelta.y > 0f ? Vector2Int.up : Vector2Int.down;
+            return dragDelta.y > 0f ? Vector2Int.down : Vector2Int.up;
         }
 
         return Vector2Int.zero;
     }
 
-    private float GetMaxPreviewDistance(TileView sourceTile, List<TileView> connectedTiles, Vector2Int direction)
+    private float GetDistanceForSteps(Vector2Int direction, int steps)
     {
-        if (sourceTile == null || sourceTile.IsPath || direction == Vector2Int.zero)
-        {
-            return 0f;
-        }
-
-        TileView frontTile = connectedTiles.Count > 0
-            ? connectedTiles[connectedTiles.Count - 1]
-            : sourceTile;
-
-        Vector2Int checkPosition = frontTile.GridPosition + direction;
-        int steps = 0;
-
-        while (boardManager.IsInsideBoardPosition(checkPosition) &&
-               boardManager.IsPathAt(checkPosition))
-        {
-            steps++;
-            checkPosition += direction;
-        }
-
-        if (steps <= 0)
-        {
-            return 0f;
-        }
-
         float spacing = direction.x != 0
             ? boardManager.GetTileSpacingX()
             : boardManager.GetTileSpacingY();
 
-        return steps * spacing;
+        return spacing * steps;
     }
 
     private float GetPreviewDistanceFromPointer(Vector3 dragDelta, Vector2Int direction, float maxPreviewDistance)

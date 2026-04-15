@@ -111,4 +111,15 @@ public class TileView : MonoBehaviour
     {
         return spriteRenderer != null ? spriteRenderer.sprite : null;
     }
+
+    public void SetGridPosition(Vector2Int gridPosition)
+    {
+        GridPosition = gridPosition;
+    }
+
+    public void SetWorldPosition(Vector3 worldPosition)
+    {
+        transform.position = worldPosition;
+    }
+
 }
