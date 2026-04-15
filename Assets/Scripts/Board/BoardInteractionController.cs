@@ -19,8 +19,9 @@ public class BoardInteractionController : MonoBehaviour
     private bool isAwaitingMatchChoice;
     private Vector2Int currentDragDirection = Vector2Int.zero;
 
-    private List<TileView> enlargedTiles = new List<TileView>();
-    private List<TileView> currentMatchChoices = new List<TileView>();
+    private readonly List<TileView> enlargedTiles = new List<TileView>();
+    private readonly List<TileView> currentMatchChoices = new List<TileView>();
+    private readonly List<TileView> dragTintedTiles = new List<TileView>();
 
     private void Update()
     {
@@ -61,7 +62,7 @@ public class BoardInteractionController : MonoBehaviour
             return;
         }
 
-        if (clickedTile == null)
+        if (clickedTile == null || clickedTile.IsPath)
         {
             ClearInteractionVisuals();
             ResetInteractionState();
@@ -87,7 +88,7 @@ public class BoardInteractionController : MonoBehaviour
             isDragging = true;
         }
 
-        if (!isDragging || activeTile == null)
+        if (!isDragging || activeTile == null || activeTile.IsPath)
         {
             return;
         }
@@ -96,27 +97,26 @@ public class BoardInteractionController : MonoBehaviour
 
         if (direction == Vector2Int.zero)
         {
-            dragPreviewController.ClearPreview();
+            ClearDragVisuals();
             currentDragDirection = Vector2Int.zero;
             return;
         }
 
-        if (direction != currentDragDirection)
-        {
-            currentDragDirection = direction;
-        }
+        currentDragDirection = direction;
 
         List<TileView> connectedTiles = boardManager.GetConnectedTilesInDirection(activeTile, currentDragDirection);
-        int maxPreviewSteps = GetMaxPreviewSteps(activeTile, connectedTiles, currentDragDirection);
+        float maxPreviewDistance = GetMaxPreviewDistance(activeTile, connectedTiles, currentDragDirection);
 
-        if (maxPreviewSteps <= 0)
+        if (maxPreviewDistance <= 0f)
         {
-            dragPreviewController.ClearPreview();
+            ClearDragVisuals();
             return;
         }
 
-        int previewStep = GetPreviewStepFromPointer(dragDelta, currentDragDirection, maxPreviewSteps);
-        dragPreviewController.ShowPreview(activeTile, connectedTiles, currentDragDirection, previewStep, boardManager);
+        float previewDistance = GetPreviewDistanceFromPointer(dragDelta, currentDragDirection, maxPreviewDistance);
+
+        ShowDragSourceTint(activeTile, connectedTiles);
+        dragPreviewController.ShowPreview(activeTile, connectedTiles, currentDragDirection, previewDistance, boardManager);
     }
 
     private void OnPointerUp()
@@ -127,16 +127,14 @@ public class BoardInteractionController : MonoBehaviour
 
             ClearInteractionVisuals();
 
-            if (candidates.Count == 0)
+            if (candidates.Count == 1)
             {
-                Debug.Log($"No valid matches");
-            }
-            else if (candidates.Count == 1)
-            {
-                Debug.Log($"Confirmed match: {activeTile.name} with {candidates[0].name}");
+                boardManager.ResolveMatch(activeTile, candidates[0]);
                 ResetInteractionState();
                 return;
-            } else if (candidates.Count > 1)
+            }
+
+            if (candidates.Count > 1)
             {
                 EnterMatchChoiceState(candidates);
                 isPointerHeld = false;
@@ -144,7 +142,8 @@ public class BoardInteractionController : MonoBehaviour
                 currentDragDirection = Vector2Int.zero;
                 return;
             }
-        } else
+        }
+        else
         {
             ClearInteractionVisuals();
         }
@@ -152,11 +151,63 @@ public class BoardInteractionController : MonoBehaviour
         ResetInteractionState();
     }
 
+    private void EnterMatchChoiceState(List<TileView> candidates)
+    {
+        isAwaitingMatchChoice = true;
+        currentMatchChoices.Clear();
+        currentMatchChoices.AddRange(candidates);
+
+        if (activeTile != null)
+        {
+            activeTile.SetCustomScale(1.15f, 12);
+            enlargedTiles.Add(activeTile);
+        }
+
+        foreach (TileView tile in currentMatchChoices)
+        {
+            if (tile != null)
+            {
+                tile.SetCustomScale(1.075f, 11);
+                enlargedTiles.Add(tile);
+            }
+        }
+    }
+
+    private void HandleMatchChoiceClick(TileView clickedTile)
+    {
+        if (activeTile == null)
+        {
+            CancelMatchChoice();
+            return;
+        }
+
+        if (clickedTile != null && currentMatchChoices.Contains(clickedTile))
+        {
+            boardManager.ResolveMatch(activeTile, clickedTile);
+            ExitMatchChoiceState();
+            return;
+        }
+
+        CancelMatchChoice();
+    }
+
+    private void CancelMatchChoice()
+    {
+        ExitMatchChoiceState();
+    }
+
+    private void ExitMatchChoiceState()
+    {
+        ClearInteractionVisuals();
+        currentMatchChoices.Clear();
+        ResetInteractionState();
+    }
+
     private void ShowSameTypeEnlargement(TileView sourceTile)
     {
         ClearEnlargedTiles();
 
-        if (sourceTile == null)
+        if (sourceTile == null || sourceTile.IsPath)
         {
             return;
         }
@@ -170,9 +221,53 @@ public class BoardInteractionController : MonoBehaviour
         }
     }
 
+    private void ShowDragSourceTint(TileView sourceTile, List<TileView> connectedTiles)
+    {
+        ClearDragSourceTint();
+
+        if (sourceTile != null)
+        {
+            sourceTile.SetDragSourceTint(true);
+            dragTintedTiles.Add(sourceTile);
+        }
+
+        foreach (TileView tile in connectedTiles)
+        {
+            if (tile != null)
+            {
+                tile.SetDragSourceTint(true);
+                dragTintedTiles.Add(tile);
+            }
+        }
+    }
+
+    private void ClearDragSourceTint()
+    {
+        foreach (TileView tile in dragTintedTiles)
+        {
+            if (tile != null)
+            {
+                tile.SetDragSourceTint(false);
+            }
+        }
+
+        dragTintedTiles.Clear();
+    }
+
+    private void ClearDragVisuals()
+    {
+        ClearDragSourceTint();
+
+        if (dragPreviewController != null)
+        {
+            dragPreviewController.ClearPreview();
+        }
+    }
+
     private void ClearInteractionVisuals()
     {
         ClearEnlargedTiles();
+        ClearDragSourceTint();
 
         if (dragPreviewController != null)
         {
@@ -191,6 +286,13 @@ public class BoardInteractionController : MonoBehaviour
         }
 
         enlargedTiles.Clear();
+    }
+
+    public void ForceClearInteractionState()
+    {
+        ClearInteractionVisuals();
+        currentMatchChoices.Clear();
+        ResetInteractionState();
     }
 
     private void ResetInteractionState()
@@ -238,11 +340,11 @@ public class BoardInteractionController : MonoBehaviour
         return Vector2Int.zero;
     }
 
-    private int GetMaxPreviewSteps(TileView sourceTile, List<TileView> connectedTiles, Vector2Int direction)
+    private float GetMaxPreviewDistance(TileView sourceTile, List<TileView> connectedTiles, Vector2Int direction)
     {
-        if (sourceTile == null || direction == Vector2Int.zero)
+        if (sourceTile == null || sourceTile.IsPath || direction == Vector2Int.zero)
         {
-            return 0;
+            return 0f;
         }
 
         TileView frontTile = connectedTiles.Count > 0
@@ -252,90 +354,31 @@ public class BoardInteractionController : MonoBehaviour
         Vector2Int checkPosition = frontTile.GridPosition + direction;
         int steps = 0;
 
-        while (boardManager.IsInsideBoard(checkPosition) &&
-           boardManager.GetTileAt(checkPosition) == null)
+        while (boardManager.IsInsideBoardPosition(checkPosition) &&
+               boardManager.IsPathAt(checkPosition))
         {
             steps++;
             checkPosition += direction;
         }
 
-        return steps;
-    }
-
-    private int GetPreviewStepFromPointer(Vector3 dragDelta, Vector2Int direction, int maxPreviewSteps)
-    {
-        float distance = direction.x != 0
-            ? Mathf.Abs(dragDelta.x)
-            : Mathf.Abs(dragDelta.y);
+        if (steps <= 0)
+        {
+            return 0f;
+        }
 
         float spacing = direction.x != 0
             ? boardManager.GetTileSpacingX()
             : boardManager.GetTileSpacingY();
 
-        int step = Mathf.Clamp(Mathf.FloorToInt(distance / spacing) + 1, 1, maxPreviewSteps);
-        return step;
+        return steps * spacing;
     }
 
-    private void EnterMatchChoiceState(List<TileView> candidates)
+    private float GetPreviewDistanceFromPointer(Vector3 dragDelta, Vector2Int direction, float maxPreviewDistance)
     {
-        isAwaitingMatchChoice = true;
-        currentMatchChoices.Clear();
-        currentMatchChoices.AddRange(candidates);
+        float distance = direction.x != 0
+            ? Mathf.Abs(dragDelta.x)
+            : Mathf.Abs(dragDelta.y);
 
-        if (activeTile != null)
-        {
-            activeTile.SetCustomScale(1.15f, 3);
-            enlargedTiles.Add(activeTile);
-        }
-
-        foreach (TileView tile in currentMatchChoices)
-        {
-            if (tile != null)
-            {
-                tile.SetCustomScale(1.075f, 2);
-                enlargedTiles.Add(tile);
-            }
-        }
-
-        Debug.Log($"Awaiting match choice for {activeTile.name}. Valid choices: {currentMatchChoices.Count}");
+        return Mathf.Clamp(distance, 0f, maxPreviewDistance);
     }
-
-    private void HandleMatchChoiceClick(TileView clickedTile)
-    {
-        if (activeTile == null)
-        {
-            CancelMatchChoice();
-            return;
-        }
-
-        if (clickedTile != null && currentMatchChoices.Contains(clickedTile))
-        {
-            Debug.Log($"Confirmed match: {activeTile.name} with {clickedTile.name}");
-            ExitMatchChoiceState();
-            return;
-        }
-
-        Debug.Log("Match choice cancelled.");
-        CancelMatchChoice();
-    }
-
-    private void CancelMatchChoice()
-    {
-        ExitMatchChoiceState();
-    }
-
-    private void ExitMatchChoiceState()
-    {
-        ClearInteractionVisuals();
-        currentMatchChoices.Clear();
-        ResetInteractionState();
-    }
-
-    public void ForceClearInteractionState()
-    {
-        ClearInteractionVisuals();
-        currentMatchChoices.Clear();
-        ResetInteractionState();
-    }
-
 }

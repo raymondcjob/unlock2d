@@ -11,9 +11,9 @@ public class BoardManager : MonoBehaviour
     [SerializeField] private float baseTileScale = 0.2f;
     [SerializeField] private float baseTileSpacingX = 0.64f;
     [SerializeField] private float baseTileSpacingY = 0.86f;
+
     private float tileSpacingX;
     private float tileSpacingY;
-    [SerializeField] private Vector2 boardOrigin = Vector2.zero;
 
     [Header("References")]
     [SerializeField] private TileView tilePrefab;
@@ -74,13 +74,26 @@ public class BoardManager : MonoBehaviour
         }
     }
 
+    public void ResolveMatch(TileView tileA, TileView tileB)
+    {
+        if (tileA == null || tileB == null)
+        {
+            return;
+        }
+
+        tileA.ConvertToPath(backTileSprite);
+        tileB.ConvertToPath(backTileSprite);
+
+        Debug.Log($"Matched: {tileA.name} with {tileB.name}");
+    }
+
     public List<TileView> GetTilesOfSameType(int tileTypeId, TileView excludeTile = null)
     {
         List<TileView> result = new List<TileView>();
 
         foreach (TileView tile in spawnedTiles)
         {
-            if (tile == null)
+            if (tile == null || tile.IsPath)
             {
                 continue;
             }
@@ -103,18 +116,18 @@ public class BoardManager : MonoBehaviour
     {
         List<TileView> connectedTiles = new List<TileView>();
 
-        if (activeTile == null || direction == Vector2Int.zero)
+        if (activeTile == null || activeTile.IsPath || direction == Vector2Int.zero)
         {
             return connectedTiles;
         }
 
         Vector2Int current = activeTile.GridPosition + direction;
 
-        while (IsInsideBoard(current))
+        while (IsInsideBoardPosition(current))
         {
             TileView tile = GetTileAt(current);
 
-            if (tile == null)
+            if (tile == null || tile.IsPath)
             {
                 break;
             }
@@ -128,7 +141,7 @@ public class BoardManager : MonoBehaviour
 
     public TileView GetTileAt(Vector2Int position)
     {
-        if (!IsInsideBoard(position) || boardTiles == null)
+        if (!IsInsideBoardPosition(position) || boardTiles == null)
         {
             return null;
         }
@@ -136,9 +149,55 @@ public class BoardManager : MonoBehaviour
         return boardTiles[position.x, position.y];
     }
 
+    public TileView GetActiveTileAt(Vector2Int position)
+    {
+        TileView tile = GetTileAt(position);
+
+        if (tile == null || tile.IsPath)
+        {
+            return null;
+        }
+
+        return tile;
+    }
+
+    public bool HasTileAt(Vector2Int position)
+    {
+        return GetActiveTileAt(position) != null;
+    }
+
+    public bool IsPathAt(Vector2Int position)
+    {
+        TileView tile = GetTileAt(position);
+        return tile != null && tile.IsPath;
+    }
+
+    public bool IsInsideBoardPosition(Vector2Int position)
+    {
+        return position.x >= 0 &&
+               position.x < boardWidth &&
+               position.y >= 0 &&
+               position.y < boardHeight;
+    }
+
     public Vector3 GetWorldPosition(Vector2Int gridPosition)
     {
         return GetWorldPosition(gridPosition.x, gridPosition.y);
+    }
+
+    public float GetTileSpacingX()
+    {
+        return tileSpacingX;
+    }
+
+    public float GetTileSpacingY()
+    {
+        return tileSpacingY;
+    }
+
+    public Sprite GetBackTileSprite()
+    {
+        return backTileSprite;
     }
 
     private List<TileEntry> BuildShuffledTileList()
@@ -180,14 +239,6 @@ public class BoardManager : MonoBehaviour
         );
     }
 
-    public bool IsInsideBoard(Vector2Int position)
-    {
-        return position.x >= 0 &&
-               position.x < boardWidth &&
-               position.y >= 0 &&
-               position.y < boardHeight;
-    }
-
     private void ClearBoard()
     {
         if (tileContainer == null)
@@ -201,18 +252,6 @@ public class BoardManager : MonoBehaviour
         }
 
         spawnedTiles.Clear();
-    }
-
-    private struct TileEntry
-    {
-        public Sprite Sprite { get; }
-        public int TileTypeId { get; }
-
-        public TileEntry(Sprite sprite, int tileTypeId)
-        {
-            Sprite = sprite;
-            TileTypeId = tileTypeId;
-        }
     }
 
     private void CalculateSpacingFromPrefabScale()
@@ -236,20 +275,16 @@ public class BoardManager : MonoBehaviour
 
         Debug.Log($"Prefab scale: ({currentScaleX}, {currentScaleY}), spacing: ({tileSpacingX}, {tileSpacingY})");
     }
-    
-    public float GetTileSpacingX()
-    {
-        return tileSpacingX;
-    }
 
-    public float GetTileSpacingY()
+    private struct TileEntry
     {
-        return tileSpacingY;
-    }
+        public Sprite Sprite { get; }
+        public int TileTypeId { get; }
 
-    public bool HasTileAt(Vector2Int position)
-    {
-        return GetTileAt(position) != null;
+        public TileEntry(Sprite sprite, int tileTypeId)
+        {
+            Sprite = sprite;
+            TileTypeId = tileTypeId;
+        }
     }
-    
 }

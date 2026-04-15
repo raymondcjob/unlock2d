@@ -7,14 +7,16 @@ public class TileView : MonoBehaviour
 
     [Header("Visual Settings")]
     [SerializeField] private float enlargedScaleMultiplier = 1.15f;
-    
+    [SerializeField] private Color dragSourceTint = new Color(0.8f, 0.8f, 0.8f, 1f);
 
     private Vector3 originalScale;
+    private int originalSortingOrder;
+    private Color originalColor;
 
     public Vector2Int GridPosition { get; private set; }
-    private int originalSortingOrder;
     public int TileTypeId { get; private set; }
-    public Sprite TileSprite { get; private set; }
+    public Sprite FaceUpSprite { get; private set; }
+    public bool IsPath { get; private set; }
 
     private void Awake()
     {
@@ -28,20 +30,34 @@ public class TileView : MonoBehaviour
         if (spriteRenderer != null)
         {
             originalSortingOrder = spriteRenderer.sortingOrder;
+            originalColor = spriteRenderer.color;
         }
     }
 
-    public void Initialize(Sprite sprite, int tileTypeId, Vector2Int gridPosition)
+    public void Initialize(Sprite faceUpSprite, int tileTypeId, Vector2Int gridPosition)
     {
         if (spriteRenderer == null)
         {
             spriteRenderer = GetComponent<SpriteRenderer>();
         }
 
-        spriteRenderer.sprite = sprite;
-        TileSprite = sprite;
+        FaceUpSprite = faceUpSprite;
         TileTypeId = tileTypeId;
         GridPosition = gridPosition;
+        IsPath = false;
+
+        spriteRenderer.sprite = FaceUpSprite;
+        ResetVisual();
+    }
+
+    public void ConvertToPath(Sprite backTileSprite)
+    {
+        IsPath = true;
+
+        if (spriteRenderer != null && backTileSprite != null)
+        {
+            spriteRenderer.sprite = backTileSprite;
+        }
 
         ResetVisual();
     }
@@ -55,27 +71,12 @@ public class TileView : MonoBehaviour
         if (spriteRenderer != null)
         {
             spriteRenderer.sortingOrder = enlarged
-                ? originalSortingOrder + 1
+                ? originalSortingOrder + 10
                 : originalSortingOrder;
         }
     }
 
-    public void ResetVisual()
-    {
-        transform.localScale = originalScale;
-
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.sortingOrder = originalSortingOrder;
-        }
-    }
-    
-    public Sprite GetSprite()
-    {
-        return TileSprite;
-    }
-
-    public void SetCustomScale(float scaleMultiplier, int sortingOrderOffset = 1)
+    public void SetCustomScale(float scaleMultiplier, int sortingOrderOffset = 10)
     {
         transform.localScale = originalScale * scaleMultiplier;
 
@@ -85,4 +86,29 @@ public class TileView : MonoBehaviour
         }
     }
 
+    public void SetDragSourceTint(bool tinted)
+    {
+        if (spriteRenderer == null)
+        {
+            return;
+        }
+
+        spriteRenderer.color = tinted ? dragSourceTint : originalColor;
+    }
+
+    public void ResetVisual()
+    {
+        transform.localScale = originalScale;
+
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.sortingOrder = originalSortingOrder;
+            spriteRenderer.color = originalColor;
+        }
+    }
+
+    public Sprite GetCurrentSprite()
+    {
+        return spriteRenderer != null ? spriteRenderer.sprite : null;
+    }
 }

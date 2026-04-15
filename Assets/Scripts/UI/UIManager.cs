@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class UIManager : MonoBehaviour
 {
+    [Header("References")]
     [SerializeField] private BoardManager boardManager;
     [SerializeField] private BoardInteractionController boardInteractionController;
     [SerializeField] private DragPreviewController dragPreviewController;
@@ -9,8 +10,7 @@ public class UIManager : MonoBehaviour
     public void OnClickHome()
     {
         Debug.Log("Home button clicked.");
-
-        // SceneManager.LoadScene("MainMenu");
+        // Later: SceneManager.LoadScene("MainMenu");
     }
 
     public void OnClickResetBoard()

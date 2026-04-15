@@ -152,4 +152,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spriteRenderer: {fileID: 4767557608375572824}
+  whiteOverlayRenderer: {fileID: 0}
   enlargedScaleMultiplier: 1.15

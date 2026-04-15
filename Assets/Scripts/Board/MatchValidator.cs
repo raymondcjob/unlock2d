@@ -17,6 +17,11 @@ public class MatchValidator : MonoBehaviour
             return false;
         }
 
+        if (tileA.IsPath || tileB.IsPath)
+        {
+            return false;
+        }
+
         if (tileA.TileTypeId != tileB.TileTypeId)
         {
             return false;
@@ -40,8 +45,7 @@ public class MatchValidator : MonoBehaviour
 
             for (int y = minY + 1; y < maxY; y++)
             {
-                TileView tileBetween = boardManager.GetTileAt(new Vector2Int(posA.x, y));
-                if (tileBetween != null)
+                if (boardManager.HasTileAt(new Vector2Int(posA.x, y)))
                 {
                     return false;
                 }
@@ -50,31 +54,25 @@ public class MatchValidator : MonoBehaviour
             return true;
         }
 
-        if (sameRow)
+        int minX = Mathf.Min(posA.x, posB.x);
+        int maxX = Mathf.Max(posA.x, posB.x);
+
+        for (int x = minX + 1; x < maxX; x++)
         {
-            int minX = Mathf.Min(posA.x, posB.x);
-            int maxX = Mathf.Max(posA.x, posB.x);
-
-            for (int x = minX + 1; x < maxX; x++)
+            if (boardManager.HasTileAt(new Vector2Int(x, posA.y)))
             {
-                TileView tileBetween = boardManager.GetTileAt(new Vector2Int(x, posA.y));
-                if (tileBetween != null)
-                {
-                    return false;
-                }
+                return false;
             }
-
-            return true;
         }
 
-        return false;
+        return true;
     }
 
     public List<TileView> GetMatchCandidates(TileView activeTile)
     {
         List<TileView> candidates = new List<TileView>();
 
-        if (activeTile == null || boardManager == null)
+        if (activeTile == null || activeTile.IsPath || boardManager == null)
         {
             return candidates;
         }
@@ -91,5 +89,4 @@ public class MatchValidator : MonoBehaviour
 
         return candidates;
     }
-    
 }
