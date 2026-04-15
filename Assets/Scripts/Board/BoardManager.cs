@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 public class BoardManager : MonoBehaviour
@@ -11,6 +12,17 @@ public class BoardManager : MonoBehaviour
     [SerializeField] private float baseTileScale = 0.2f;
     [SerializeField] private float baseTileSpacingX = 0.64f;
     [SerializeField] private float baseTileSpacingY = 0.86f;
+    private float tileSpacingX;
+    private float tileSpacingY;
+
+    [Header("Seed Settings")]
+    [SerializeField] private bool generateRandomSeedOnStart = true;
+
+    private int remainingFaceUpTiles;
+    private int currentSeed;
+    private bool hasGeneratedBoard;
+
+    public event Action<int> OnBoardWon;
 
     [Header("References")]
     [SerializeField] private TileView tilePrefab;
@@ -23,14 +35,51 @@ public class BoardManager : MonoBehaviour
 
     private TileView[,] boardTiles;
     private readonly List<TileView> spawnedTiles = new List<TileView>();
-    private int remainingFaceUpTiles;
-
-    private float tileSpacingX;
-    private float tileSpacingY;
 
     private void Start()
     {
+        if (generateRandomSeedOnStart)
+        {
+            GenerateNewBoard();
+        }
+        else
+        {
+            GenerateBoardFromSeed(0);
+        }
+    }
+
+    public void GenerateNewBoard()
+    {
+        int newSeed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+        GenerateBoardFromSeed(newSeed);
+    }
+
+    public void ReplayCurrentBoard()
+    {
+        if (!hasGeneratedBoard)
+        {
+            GenerateNewBoard();
+            return;
+        }
+
+        GenerateBoardFromSeed(currentSeed);
+    }
+
+    public void GenerateBoardFromSeed(int seed)
+    {
+        currentSeed = seed;
+        hasGeneratedBoard = true;
         GenerateBoard();
+    }
+
+    public int GetCurrentSeed()
+    {
+        return currentSeed;
+    }
+
+    public int GetRemainingFaceUpTiles()
+    {
+        return remainingFaceUpTiles;
     }
 
     public void GenerateBoard()
@@ -53,7 +102,8 @@ public class BoardManager : MonoBehaviour
             return;
         }
 
-        List<TileEntry> shuffledTiles = BuildShuffledTileList();
+        System.Random seededRandom = new System.Random(currentSeed);
+        List<TileEntry> shuffledTiles = BuildShuffledTileList(seededRandom);
         remainingFaceUpTiles = shuffledTiles.Count;
         boardTiles = new TileView[boardWidth, boardHeight];
 
@@ -99,7 +149,8 @@ public class BoardManager : MonoBehaviour
     {
         if (remainingFaceUpTiles == 0)
         {
-            Debug.Log("You win!");
+            Debug.Log($"You win! Seed: {currentSeed}");
+            OnBoardWon?.Invoke(currentSeed);
         }
     }
 
@@ -309,7 +360,7 @@ public class BoardManager : MonoBehaviour
         return backTileSprite;
     }
 
-    private List<TileEntry> BuildShuffledTileList()
+    private List<TileEntry> BuildShuffledTileList(System.Random seededRandom)
     {
         List<TileEntry> tilePool = new List<TileEntry>();
 
@@ -321,15 +372,15 @@ public class BoardManager : MonoBehaviour
             }
         }
 
-        Shuffle(tilePool);
+        Shuffle(tilePool, seededRandom);
         return tilePool;
     }
 
-    private void Shuffle(List<TileEntry> list)
+    private void Shuffle(List<TileEntry> list, System.Random seededRandom)
     {
         for (int i = list.Count - 1; i > 0; i--)
         {
-            int randomIndex = Random.Range(0, i + 1);
+            int randomIndex = seededRandom.Next(0, i + 1);
             (list[i], list[randomIndex]) = (list[randomIndex], list[i]);
         }
     }
@@ -396,4 +447,23 @@ public class BoardManager : MonoBehaviour
             TileTypeId = tileTypeId;
         }
     }
+
+
+
+    // Debug Functions
+    [ContextMenu("Force Win")]
+    public void DebugForceWin()
+{
+    foreach (TileView tile in spawnedTiles)
+    {
+        if (tile != null && !tile.IsPath)
+        {
+            tile.ConvertToPath(backTileSprite);
+        }
+    }
+
+    remainingFaceUpTiles = 0;
+    Debug.Log("DebugForceWin called. remainingFaceUpTiles set to 0.");
+    CheckWinCondition();
+}
 }
