@@ -12,9 +12,6 @@ public class BoardManager : MonoBehaviour
     [SerializeField] private float baseTileSpacingX = 0.64f;
     [SerializeField] private float baseTileSpacingY = 0.86f;
 
-    private float tileSpacingX;
-    private float tileSpacingY;
-
     [Header("References")]
     [SerializeField] private TileView tilePrefab;
     [SerializeField] private Transform tileContainer;
@@ -23,8 +20,13 @@ public class BoardManager : MonoBehaviour
     [SerializeField] private Sprite[] tileSprites;
     [SerializeField] private Sprite backTileSprite;
 
+
     private TileView[,] boardTiles;
     private readonly List<TileView> spawnedTiles = new List<TileView>();
+    private int remainingFaceUpTiles;
+
+    private float tileSpacingX;
+    private float tileSpacingY;
 
     private void Start()
     {
@@ -52,6 +54,7 @@ public class BoardManager : MonoBehaviour
         }
 
         List<TileEntry> shuffledTiles = BuildShuffledTileList();
+        remainingFaceUpTiles = shuffledTiles.Count;
         boardTiles = new TileView[boardWidth, boardHeight];
 
         int index = 0;
@@ -76,7 +79,7 @@ public class BoardManager : MonoBehaviour
 
     public void ResolveMatch(TileView tileA, TileView tileB)
     {
-        if (tileA == null || tileB == null)
+        if (tileA == null || tileB == null || tileA.IsPath || tileB.IsPath)
         {
             return;
         }
@@ -84,7 +87,20 @@ public class BoardManager : MonoBehaviour
         tileA.ConvertToPath(backTileSprite);
         tileB.ConvertToPath(backTileSprite);
 
+        remainingFaceUpTiles -= 2;
+
         Debug.Log($"Matched: {tileA.name} with {tileB.name}");
+        Debug.Log($"Remaining face-up tiles: {remainingFaceUpTiles}");
+
+        CheckWinCondition();
+    }
+
+    private void CheckWinCondition()
+    {
+        if (remainingFaceUpTiles == 0)
+        {
+            Debug.Log("You win!");
+        }
     }
 
     public List<TileView> GetTilesOfSameType(int tileTypeId, TileView excludeTile = null)
