@@ -90,7 +90,7 @@ public class MatchValidator : MonoBehaviour
 
         foreach (TileView tile in sameTypeTiles)
         {
-            if (tile == null || tile.IsPath)
+            if (tile == null || tile.IsPath || movedGroup.Contains(tile))
             {
                 continue;
             }

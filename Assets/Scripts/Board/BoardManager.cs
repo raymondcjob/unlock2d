@@ -298,7 +298,80 @@ public class BoardManager : MonoBehaviour
             pathTile.SetWorldPosition(GetWorldPosition(fillPosition));
         }
     }
-    
+
+    public void RestoreMovedTileGroup(
+        List<TileView> movingTiles,
+        Vector2Int originalActivePosition,
+        Vector2Int direction,
+        int steps)
+    {
+        if (movingTiles == null || movingTiles.Count == 0 || direction == Vector2Int.zero || steps <= 0)
+        {
+            return;
+        }
+
+        List<Vector2Int> currentPositions = new List<Vector2Int>();
+
+        foreach (TileView tile in movingTiles)
+        {
+            if (tile == null)
+            {
+                Debug.LogError("RestoreMovedTileGroup failed: moving tile is null.");
+                return;
+            }
+
+            currentPositions.Add(tile.GridPosition);
+        }
+
+        List<TileView> recycledPathTiles = new List<TileView>();
+
+        for (int i = 0; i < steps; i++)
+        {
+            Vector2Int trailPosition = originalActivePosition + direction * i;
+            TileView pathTile = GetTileAt(trailPosition);
+
+            if (pathTile == null || !pathTile.IsPath)
+            {
+                Debug.LogError($"RestoreMovedTileGroup failed: expected a path tile at {trailPosition}.");
+                return;
+            }
+
+            recycledPathTiles.Add(pathTile);
+        }
+
+        foreach (Vector2Int position in currentPositions)
+        {
+            boardTiles[position.x, position.y] = null;
+        }
+
+        for (int i = 0; i < steps; i++)
+        {
+            Vector2Int trailPosition = originalActivePosition + direction * i;
+            boardTiles[trailPosition.x, trailPosition.y] = null;
+        }
+
+        for (int i = 0; i < movingTiles.Count; i++)
+        {
+            TileView tile = movingTiles[i];
+            Vector2Int restoredPosition = currentPositions[i] - direction * steps;
+
+            boardTiles[restoredPosition.x, restoredPosition.y] = tile;
+            tile.SetGridPosition(restoredPosition);
+            tile.SetWorldPosition(GetWorldPosition(restoredPosition));
+        }
+
+        Vector2Int originalFrontPosition = originalActivePosition + direction * (movingTiles.Count - 1);
+
+        for (int i = 0; i < recycledPathTiles.Count; i++)
+        {
+            TileView pathTile = recycledPathTiles[i];
+            Vector2Int restoredPathPosition = originalFrontPosition + direction * (i + 1);
+
+            boardTiles[restoredPathPosition.x, restoredPathPosition.y] = pathTile;
+            pathTile.SetGridPosition(restoredPathPosition);
+            pathTile.SetWorldPosition(GetWorldPosition(restoredPathPosition));
+        }
+    }
 
     public TileView GetTileAt(Vector2Int position)
     {

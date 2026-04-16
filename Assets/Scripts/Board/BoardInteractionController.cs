@@ -33,6 +33,11 @@ public class BoardInteractionController : MonoBehaviour
     private readonly List<TileView> dragTintedTiles = new List<TileView>();
     private readonly List<TileView> dragCreatedMatchChoices = new List<TileView>();
 
+    private bool isAwaitingDragSelectionCancelRestore;
+    private readonly List<TileView> pendingMovedTiles = new List<TileView>();
+    private Vector2Int pendingMoveOriginalActivePosition;
+    private Vector2Int pendingMoveDirection = Vector2Int.zero;
+    private int pendingMoveSteps;
     private DebugSelectionMode debugSelectionMode = DebugSelectionMode.None;
     private TileView debugSelectedTileA;
 
@@ -162,12 +167,14 @@ public class BoardInteractionController : MonoBehaviour
             {
                 boardManager.ResolveMatch(activeTile, dragCreatedMatchChoices[0]);
                 dragCreatedMatchChoices.Clear();
+                ClearPendingDragMove();
                 ResetInteractionState();
                 return;
             }
 
             if (dragCreatedMatchChoices.Count > 1)
             {
+                isAwaitingDragSelectionCancelRestore = true;
                 EnterMatchChoiceState(dragCreatedMatchChoices);
                 dragCreatedMatchChoices.Clear();
                 isPointerHeld = false;
@@ -273,6 +280,7 @@ public class BoardInteractionController : MonoBehaviour
         List<TileView> movedGroup = new List<TileView> { activeTile };
         movedGroup.AddRange(connectedTiles);
 
+        Vector2Int originalActivePosition = activeTile.GridPosition;
         Vector2Int projectedPosition = activeTile.GridPosition + currentDragDirection * chosenSteps;
 
         List<TileView> projectedMatches = matchValidator.GetProjectedMatchCandidates(
@@ -295,8 +303,47 @@ public class BoardInteractionController : MonoBehaviour
             return false;
         }
 
+        StorePendingDragMove(movedGroup, originalActivePosition, currentDragDirection, chosenSteps);
         boardManager.MoveTileGroup(activeTile, connectedTiles, currentDragDirection, chosenSteps);
         return true;
+    }
+
+    private void StorePendingDragMove(List<TileView> movedTiles, Vector2Int originalActivePosition, Vector2Int direction, int steps)
+    {
+        pendingMovedTiles.Clear();
+        pendingMovedTiles.AddRange(movedTiles);
+
+        pendingMoveOriginalActivePosition = originalActivePosition;
+        pendingMoveDirection = direction;
+        pendingMoveSteps = steps;
+    }
+
+    private void RestorePendingDragMoveIfNeeded()
+    {
+        if (!isAwaitingDragSelectionCancelRestore)
+        {
+            return;
+        }
+
+        if (pendingMovedTiles.Count > 0 && boardManager != null)
+        {
+            boardManager.RestoreMovedTileGroup(
+                pendingMovedTiles,
+                pendingMoveOriginalActivePosition,
+                pendingMoveDirection,
+                pendingMoveSteps);
+        }
+
+        ClearPendingDragMove();
+    }
+
+    private void ClearPendingDragMove()
+    {
+        isAwaitingDragSelectionCancelRestore = false;
+        pendingMovedTiles.Clear();
+        pendingMoveOriginalActivePosition = Vector2Int.zero;
+        pendingMoveDirection = Vector2Int.zero;
+        pendingMoveSteps = 0;
     }
 
     private int GetCommittedStepCount(Vector2Int direction, float previewDistance, int maxMoveSteps)
@@ -354,6 +401,7 @@ public class BoardInteractionController : MonoBehaviour
         if (clickedTile != null && currentMatchChoices.Contains(clickedTile))
         {
             boardManager.ResolveMatch(activeTile, clickedTile);
+            ClearPendingDragMove();
             ExitMatchChoiceState();
             return;
         }
@@ -363,6 +411,7 @@ public class BoardInteractionController : MonoBehaviour
 
     private void CancelMatchChoice()
     {
+        RestorePendingDragMoveIfNeeded();
         ExitMatchChoiceState();
     }
 
@@ -497,6 +546,7 @@ public class BoardInteractionController : MonoBehaviour
         currentDragDirection = Vector2Int.zero;
         currentPreviewDistance = 0f;
         dragCreatedMatchChoices.Clear();
+        ClearPendingDragMove();
     }
 
     private TileView GetTileUnderPointer(Vector3 worldPosition)
