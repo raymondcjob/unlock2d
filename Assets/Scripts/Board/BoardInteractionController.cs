@@ -3,6 +3,13 @@ using UnityEngine;
 
 public class BoardInteractionController : MonoBehaviour
 {
+    private enum DebugSelectionMode
+    {
+        None,
+        Swap,
+        Match
+    }
+
     [Header("References")]
     [SerializeField] private Camera mainCamera;
     [SerializeField] private BoardManager boardManager;
@@ -24,6 +31,10 @@ public class BoardInteractionController : MonoBehaviour
     private readonly List<TileView> enlargedTiles = new List<TileView>();
     private readonly List<TileView> currentMatchChoices = new List<TileView>();
     private readonly List<TileView> dragTintedTiles = new List<TileView>();
+    private readonly List<TileView> dragCreatedMatchChoices = new List<TileView>();
+
+    private DebugSelectionMode debugSelectionMode = DebugSelectionMode.None;
+    private TileView debugSelectedTileA;
 
     private void Update()
     {
@@ -57,6 +68,12 @@ public class BoardInteractionController : MonoBehaviour
     {
         Vector3 worldPosition = GetMouseWorldPosition();
         TileView clickedTile = GetTileUnderPointer(worldPosition);
+
+        if (debugSelectionMode != DebugSelectionMode.None)
+        {
+            HandleDebugTileSelection(clickedTile);
+            return;
+        }
 
         if (isAwaitingMatchChoice)
         {
@@ -141,18 +158,18 @@ public class BoardInteractionController : MonoBehaviour
                 return;
             }
 
-            List<TileView> candidates = matchValidator.GetMatchCandidates(activeTile);
-
-            if (candidates.Count == 1)
+            if (dragCreatedMatchChoices.Count == 1)
             {
-                boardManager.ResolveMatch(activeTile, candidates[0]);
+                boardManager.ResolveMatch(activeTile, dragCreatedMatchChoices[0]);
+                dragCreatedMatchChoices.Clear();
                 ResetInteractionState();
                 return;
             }
 
-            if (candidates.Count > 1)
+            if (dragCreatedMatchChoices.Count > 1)
             {
-                EnterMatchChoiceState(candidates);
+                EnterMatchChoiceState(dragCreatedMatchChoices);
+                dragCreatedMatchChoices.Clear();
                 isPointerHeld = false;
                 isDragging = false;
                 currentDragDirection = Vector2Int.zero;
@@ -160,6 +177,7 @@ public class BoardInteractionController : MonoBehaviour
                 return;
             }
 
+            dragCreatedMatchChoices.Clear();
             ResetInteractionState();
             return;
         }
@@ -195,8 +213,41 @@ public class BoardInteractionController : MonoBehaviour
         ResetInteractionState();
     }
 
+    private void HandleDebugTileSelection(TileView clickedTile)
+    {
+        if (clickedTile == null || clickedTile.IsPath)
+        {
+            return;
+        }
+
+        if (debugSelectedTileA == null)
+        {
+            ClearInteractionVisuals();
+            debugSelectedTileA = clickedTile;
+            clickedTile.SetCustomScale(1.15f, 12);
+            enlargedTiles.Add(clickedTile);
+            Debug.Log($"Debug selection A: {clickedTile.name}");
+            return;
+        }
+
+        TileView debugSelectedTileB = clickedTile;
+
+        if (debugSelectionMode == DebugSelectionMode.Swap)
+        {
+            boardManager.DebugSwapTiles(debugSelectedTileA, debugSelectedTileB);
+        }
+        else if (debugSelectionMode == DebugSelectionMode.Match)
+        {
+            boardManager.DebugMatchTiles(debugSelectedTileA, debugSelectedTileB);
+        }
+
+        CancelDebugSelectionMode();
+    }
+
     private bool TryResolveDragMove()
     {
+        dragCreatedMatchChoices.Clear();
+
         if (activeTile == null || activeTile.IsPath || currentDragDirection == Vector2Int.zero)
         {
             return false;
@@ -231,23 +282,15 @@ public class BoardInteractionController : MonoBehaviour
             currentDragDirection,
             chosenSteps);
 
-        if (projectedMatches.Count == 0)
-        {
-            return false;
-        }
-
-        bool createsNewMatch = false;
-
         foreach (TileView projectedMatch in projectedMatches)
         {
             if (!currentMatches.Contains(projectedMatch))
             {
-                createsNewMatch = true;
-                break;
+                dragCreatedMatchChoices.Add(projectedMatch);
             }
         }
 
-        if (!createsNewMatch)
+        if (dragCreatedMatchChoices.Count == 0)
         {
             return false;
         }
@@ -419,7 +462,30 @@ public class BoardInteractionController : MonoBehaviour
     {
         ClearInteractionVisuals();
         currentMatchChoices.Clear();
+        dragCreatedMatchChoices.Clear();
+        CancelDebugSelectionMode();
         ResetInteractionState();
+    }
+
+    public void BeginDebugSwapSelection()
+    {
+        ForceClearInteractionState();
+        debugSelectionMode = DebugSelectionMode.Swap;
+        Debug.Log("Debug swap mode enabled. Select 2 tiles.");
+    }
+
+    public void BeginDebugMatchSelection()
+    {
+        ForceClearInteractionState();
+        debugSelectionMode = DebugSelectionMode.Match;
+        Debug.Log("Debug match mode enabled. Select 2 tiles.");
+    }
+
+    public void CancelDebugSelectionMode()
+    {
+        ClearInteractionVisuals();
+        debugSelectedTileA = null;
+        debugSelectionMode = DebugSelectionMode.None;
     }
 
     private void ResetInteractionState()
@@ -430,6 +496,7 @@ public class BoardInteractionController : MonoBehaviour
         isAwaitingMatchChoice = false;
         currentDragDirection = Vector2Int.zero;
         currentPreviewDistance = 0f;
+        dragCreatedMatchChoices.Clear();
     }
 
     private TileView GetTileUnderPointer(Vector3 worldPosition)

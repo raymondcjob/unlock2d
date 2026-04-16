@@ -70,6 +70,30 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void OnClickDebugSwapMode()
+    {
+        if (boardInteractionController != null)
+        {
+            boardInteractionController.BeginDebugSwapSelection();
+        }
+    }
+
+    public void OnClickDebugMatchMode()
+    {
+        if (boardInteractionController != null)
+        {
+            boardInteractionController.BeginDebugMatchSelection();
+        }
+    }
+
+    public void OnClickCancelDebugMode()
+    {
+        if (boardInteractionController != null)
+        {
+            boardInteractionController.CancelDebugSelectionMode();
+        }
+    }
+
     private void HandleBoardWon(int seed)
     {
         Debug.Log($"Showing win popup for seed: {seed}");

@@ -298,6 +298,7 @@ public class BoardManager : MonoBehaviour
             pathTile.SetWorldPosition(GetWorldPosition(fillPosition));
         }
     }
+    
 
     public TileView GetTileAt(Vector2Int position)
     {
@@ -453,17 +454,85 @@ public class BoardManager : MonoBehaviour
     // Debug Functions
     [ContextMenu("Force Win")]
     public void DebugForceWin()
-{
-    foreach (TileView tile in spawnedTiles)
     {
-        if (tile != null && !tile.IsPath)
+        foreach (TileView tile in spawnedTiles)
         {
-            tile.ConvertToPath(backTileSprite);
+            if (tile != null && !tile.IsPath)
+            {
+                tile.ConvertToPath(backTileSprite);
+            }
         }
+
+        remainingFaceUpTiles = 0;
+        Debug.Log("DebugForceWin called. remainingFaceUpTiles set to 0.");
+        CheckWinCondition();
     }
 
-    remainingFaceUpTiles = 0;
-    Debug.Log("DebugForceWin called. remainingFaceUpTiles set to 0.");
-    CheckWinCondition();
-}
+    public bool DebugSwapTiles(TileView tileA, TileView tileB)
+    {
+        if (tileA == null || tileB == null)
+        {
+            Debug.LogWarning("DebugSwapTiles failed: one or both tiles are null.");
+            return false;
+        }
+
+        if (tileA == tileB)
+        {
+            Debug.LogWarning("DebugSwapTiles failed: cannot swap the same tile.");
+            return false;
+        }
+
+        Vector2Int positionA = tileA.GridPosition;
+        Vector2Int positionB = tileB.GridPosition;
+
+        if (!IsInsideBoardPosition(positionA) || !IsInsideBoardPosition(positionB))
+        {
+            Debug.LogWarning("DebugSwapTiles failed: one or both tiles are outside the board.");
+            return false;
+        }
+
+        boardTiles[positionA.x, positionA.y] = tileB;
+        boardTiles[positionB.x, positionB.y] = tileA;
+
+        tileA.SetGridPosition(positionB);
+        tileA.SetWorldPosition(GetWorldPosition(positionB));
+
+        tileB.SetGridPosition(positionA);
+        tileB.SetWorldPosition(GetWorldPosition(positionA));
+
+        Debug.Log($"DebugSwapTiles success: {tileA.name} <-> {tileB.name}");
+        return true;
+    }
+
+    public bool DebugMatchTiles(TileView tileA, TileView tileB)
+    {
+        if (tileA == null || tileB == null)
+        {
+            Debug.LogWarning("DebugMatchTiles failed: one or both tiles are null.");
+            return false;
+        }
+
+        if (tileA == tileB)
+        {
+            Debug.LogWarning("DebugMatchTiles failed: cannot match the same tile object.");
+            return false;
+        }
+
+        if (tileA.IsPath || tileB.IsPath)
+        {
+            Debug.LogWarning("DebugMatchTiles failed: one or both tiles are already path tiles.");
+            return false;
+        }
+
+        if (tileA.TileTypeId != tileB.TileTypeId)
+        {
+            Debug.LogWarning("DebugMatchTiles failed: tiles are not the same type.");
+            return false;
+        }
+
+        ResolveMatch(tileA, tileB);
+        Debug.Log($"DebugMatchTiles success: {tileA.name} matched with {tileB.name}");
+        return true;
+    }
+
 }
