@@ -15,6 +15,7 @@ public class BoardInteractionController : MonoBehaviour
     [SerializeField] private BoardManager boardManager;
     [SerializeField] private DragPreviewController dragPreviewController;
     [SerializeField] private MatchValidator matchValidator;
+    [SerializeField] private UIManager uiManager;
 
     [Header("Input Settings")]
     [SerializeField] private float dragThreshold = 0.2f;
@@ -28,6 +29,11 @@ public class BoardInteractionController : MonoBehaviour
     private Vector2Int currentDragDirection = Vector2Int.zero;
     private float currentPreviewDistance;
 
+    [Header("Hint Settings")]
+    [SerializeField] private bool autoHintEnabled = true;
+    [SerializeField] private float autoHintDelaySeconds = 5f;
+    [SerializeField] private float autoHintScaleMultiplier = 1.15f;
+
     private readonly List<TileView> enlargedTiles = new List<TileView>();
     private readonly List<TileView> currentMatchChoices = new List<TileView>();
     private readonly List<TileView> dragTintedTiles = new List<TileView>();
@@ -38,8 +44,34 @@ public class BoardInteractionController : MonoBehaviour
     private Vector2Int pendingMoveOriginalActivePosition;
     private Vector2Int pendingMoveDirection = Vector2Int.zero;
     private int pendingMoveSteps;
+
+    private float autoHintTimer;
+    private readonly List<TileView> autoHintTiles = new List<TileView>();
+
+
     private DebugSelectionMode debugSelectionMode = DebugSelectionMode.None;
     private TileView debugSelectedTileA;
+
+    private void OnEnable()
+    {
+        if (boardManager != null)
+        {
+            boardManager.OnStableBoardStateChanged += HandleStableBoardStateChanged;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (boardManager != null)
+        {
+            boardManager.OnStableBoardStateChanged -= HandleStableBoardStateChanged;
+        }
+    }
+
+    private void Start()
+    {
+        ResetAutoHintTimer();
+    }
 
     private void Update()
     {
@@ -49,6 +81,105 @@ public class BoardInteractionController : MonoBehaviour
         }
 
         HandleMouseInput();
+        TickAutoHint(Time.deltaTime);
+    }
+
+    private void TickAutoHint(float deltaTime)
+    {
+        if (!autoHintEnabled)
+        {
+            return;
+        }
+
+        if (boardManager == null || boardManager.GetRemainingFaceUpTiles() <= 0)
+        {
+            return;
+        }
+
+        if (isPointerHeld || isDragging || isAwaitingMatchChoice || debugSelectionMode != DebugSelectionMode.None)
+        {
+            return;
+        }
+
+        if (uiManager != null && uiManager.IsModalOverlayVisible())
+        {
+            return;
+        }
+
+        if (autoHintTiles.Count > 0)
+        {
+            return;
+        }
+
+        autoHintTimer += deltaTime;
+
+        if (autoHintTimer < autoHintDelaySeconds)
+        {
+            return;
+        }
+
+        autoHintTimer = 0f;
+
+        if (BoardMoveAnalyzer.TryFindHint(boardManager, out BoardMoveAnalyzer.HintResult hint))
+        {
+            ApplyAutoHint(hint.SourceTile, hint.TargetTile);
+        }
+    }
+
+    private void ApplyAutoHint(TileView tileA, TileView tileB)
+    {
+        ClearAutoHint();
+
+        if (tileA != null)
+        {
+            tileA.SetCustomScale(autoHintScaleMultiplier, 13);
+            autoHintTiles.Add(tileA);
+        }
+
+        if (tileB != null && tileB != tileA)
+        {
+            tileB.SetCustomScale(autoHintScaleMultiplier, 13);
+            autoHintTiles.Add(tileB);
+        }
+    }
+
+    private void ClearAutoHint()
+    {
+        foreach (TileView tile in autoHintTiles)
+        {
+            if (tile != null)
+            {
+                tile.ResetVisual();
+            }
+        }
+
+        autoHintTiles.Clear();
+    }
+
+    private void ResetAutoHintTimer()
+    {
+        autoHintTimer = 0f;
+    }
+
+    private void HandleStableBoardStateChanged()
+    {
+        ClearAutoHint();
+        ResetAutoHintTimer();
+
+        if (boardManager == null || boardManager.GetRemainingFaceUpTiles() <= 0)
+        {
+            uiManager?.HideNoMovesOverlay();
+            return;
+        }
+
+        if (BoardMoveAnalyzer.HasAnyAvailableMove(boardManager))
+        {
+            uiManager?.HideNoMovesOverlay();
+        }
+        else
+        {
+            uiManager?.ShowNoMovesOverlay();
+        }
     }
 
     private void HandleMouseInput()
@@ -71,6 +202,32 @@ public class BoardInteractionController : MonoBehaviour
 
     private void OnPointerDown()
     {
+        bool dismissedOverlay = false;
+
+        if (uiManager != null && uiManager.IsModalOverlayVisible())
+        {
+            dismissedOverlay = uiManager.DismissTransientOverlays();
+
+            if (uiManager.IsModalOverlayVisible())
+            {
+                ClearInteractionVisuals();
+                ClearAutoHint();
+                ResetAutoHintTimer();
+                ResetInteractionState();
+                return;
+            }
+        }
+
+        ClearAutoHint();
+        ResetAutoHintTimer();
+
+        if (dismissedOverlay)
+        {
+            ClearInteractionVisuals();
+            ResetInteractionState();
+            return;
+        }
+
         Vector3 worldPosition = GetMouseWorldPosition();
         TileView clickedTile = GetTileUnderPointer(worldPosition);
 
@@ -510,6 +667,8 @@ public class BoardInteractionController : MonoBehaviour
     public void ForceClearInteractionState()
     {
         ClearInteractionVisuals();
+        ClearAutoHint();
+        ResetAutoHintTimer();
         currentMatchChoices.Clear();
         dragCreatedMatchChoices.Clear();
         CancelDebugSelectionMode();

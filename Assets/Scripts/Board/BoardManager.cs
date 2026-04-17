@@ -22,6 +22,11 @@ public class BoardManager : MonoBehaviour
     private int currentSeed;
     private bool hasGeneratedBoard;
 
+    [Header("Board Validation")]
+    [SerializeField] private int maxSeedValidationAttempts = 500;
+
+    public event Action OnStableBoardStateChanged;
+
     public event Action<int> OnBoardWon;
 
     [Header("References")]
@@ -67,9 +72,52 @@ public class BoardManager : MonoBehaviour
 
     public void GenerateBoardFromSeed(int seed)
     {
-        currentSeed = seed;
         hasGeneratedBoard = true;
+        currentSeed = FindNextValidSeed(seed);
         GenerateBoard();
+        OnStableBoardStateChanged?.Invoke();
+    }
+
+    private int FindNextValidSeed(int startingSeed)
+    {
+        int candidateSeed = startingSeed;
+
+        for (int attempt = 0; attempt < maxSeedValidationAttempts; attempt++)
+        {
+            System.Random seededRandom = new System.Random(candidateSeed);
+            List<TileEntry> shuffledTiles = BuildShuffledTileList(seededRandom);
+            int[,] layout = BuildTileTypeGrid(shuffledTiles);
+
+            if (!BoardMoveAnalyzer.ShouldRegenerateInitialLayout(layout))
+            {
+                return candidateSeed;
+            }
+
+            candidateSeed++;
+        }
+
+        Debug.LogWarning(
+            $"Board validation could not find a valid seed within {maxSeedValidationAttempts} attempts. " +
+            $"Falling back to starting seed {startingSeed}.");
+
+        return startingSeed;
+    }
+
+    private int[,] BuildTileTypeGrid(List<TileEntry> shuffledTiles)
+    {
+        int[,] layout = new int[boardWidth, boardHeight];
+        int index = 0;
+
+        for (int y = 0; y < boardHeight; y++)
+        {
+            for (int x = 0; x < boardWidth; x++)
+            {
+                layout[x, y] = shuffledTiles[index].TileTypeId;
+                index++;
+            }
+        }
+
+        return layout;
     }
 
     public int GetCurrentSeed()
@@ -80,6 +128,16 @@ public class BoardManager : MonoBehaviour
     public int GetRemainingFaceUpTiles()
     {
         return remainingFaceUpTiles;
+    }
+
+    public int GetBoardWidth()
+    {
+        return boardWidth;
+    }
+
+    public int GetBoardHeight()
+    {
+        return boardHeight;
     }
 
     public void GenerateBoard()
@@ -143,6 +201,7 @@ public class BoardManager : MonoBehaviour
         Debug.Log($"Remaining face-up tiles: {remainingFaceUpTiles}");
 
         CheckWinCondition();
+        OnStableBoardStateChanged?.Invoke();
     }
 
     private void CheckWinCondition()
@@ -606,6 +665,67 @@ public class BoardManager : MonoBehaviour
         ResolveMatch(tileA, tileB);
         Debug.Log($"DebugMatchTiles success: {tileA.name} matched with {tileB.name}");
         return true;
+    }
+
+    [ContextMenu("Generate Board With One Opening Clickable Match")]
+    public void DebugGenerateBoardWithOneOpeningClickableMatch()
+    {
+        const int maxAttempts = 5000;
+
+        for (int attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            int seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+            System.Random seededRandom = new System.Random(seed);
+            List<TileEntry> shuffledTiles = BuildShuffledTileList(seededRandom);
+
+            if (CountAdjacentOpeningMatches(shuffledTiles) == 1)
+            {
+                hasGeneratedBoard = true;
+                currentSeed = seed;
+                GenerateBoard();
+                OnStableBoardStateChanged?.Invoke();
+
+                Debug.Log($"Generated debug board with exactly one opening clickable match. Seed: {currentSeed}");
+                return;
+            }
+        }
+
+        Debug.LogWarning("Could not find a board with exactly one opening clickable match.");
+    }
+
+    private int CountAdjacentOpeningMatches(List<TileEntry> shuffledTiles)
+    {
+        int count = 0;
+
+        for (int i = 0; i < shuffledTiles.Count; i++)
+        {
+            int x1 = i % boardWidth;
+            int y1 = i / boardWidth;
+            TileEntry tileA = shuffledTiles[i];
+
+            for (int j = i + 1; j < shuffledTiles.Count; j++)
+            {
+                TileEntry tileB = shuffledTiles[j];
+
+                if (tileA.TileTypeId != tileB.TileTypeId)
+                {
+                    continue;
+                }
+
+                int x2 = j % boardWidth;
+                int y2 = j / boardWidth;
+
+                bool adjacentHorizontally = y1 == y2 && Mathf.Abs(x1 - x2) == 1;
+                bool adjacentVertically = x1 == x2 && Mathf.Abs(y1 - y2) == 1;
+
+                if (adjacentHorizontally || adjacentVertically)
+                {
+                    count++;
+                }
+            }
+        }
+
+        return count;
     }
 
 }

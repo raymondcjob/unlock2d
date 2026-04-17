@@ -10,6 +10,9 @@ public class UIManager : MonoBehaviour
     [Header("Win Popup")]
     [SerializeField] private GameObject winOverlayRoot;
 
+    [Header("No Moves Popup")]
+    [SerializeField] private GameObject noMovesOverlayRoot;
+
     private void OnEnable()
     {
         if (boardManager != null)
@@ -29,6 +32,7 @@ public class UIManager : MonoBehaviour
     private void Start()
     {
         SetWinOverlayVisible(false);
+        SetNoMovesOverlayVisible(false);
     }
 
     public void OnClickHome()
@@ -40,6 +44,7 @@ public class UIManager : MonoBehaviour
     public void OnClickResetBoard()
     {
         SetWinOverlayVisible(false);
+        SetNoMovesOverlayVisible(false);
         ClearBoardInteraction();
 
         if (boardManager != null)
@@ -51,6 +56,7 @@ public class UIManager : MonoBehaviour
     public void OnClickNextGame()
     {
         SetWinOverlayVisible(false);
+        SetNoMovesOverlayVisible(false);
         ClearBoardInteraction();
 
         if (boardManager != null)
@@ -62,6 +68,7 @@ public class UIManager : MonoBehaviour
     public void OnClickReplay()
     {
         SetWinOverlayVisible(false);
+        SetNoMovesOverlayVisible(false);
         ClearBoardInteraction();
 
         if (boardManager != null)
@@ -94,9 +101,48 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void ShowNoMovesOverlay()
+    {
+        SetNoMovesOverlayVisible(true);
+    }
+
+    public void HideNoMovesOverlay()
+    {
+        SetNoMovesOverlayVisible(false);
+    }
+
+    public bool DismissTransientOverlays()
+    {
+        bool dismissed = false;
+
+        if (IsNoMovesOverlayVisible())
+        {
+            SetNoMovesOverlayVisible(false);
+            dismissed = true;
+        }
+
+        return dismissed;
+    }
+
+    public bool IsModalOverlayVisible()
+    {
+        return IsWinOverlayVisible() || IsNoMovesOverlayVisible();
+    }
+
+    public bool IsWinOverlayVisible()
+    {
+        return winOverlayRoot != null && winOverlayRoot.activeSelf;
+    }
+
+    public bool IsNoMovesOverlayVisible()
+    {
+        return noMovesOverlayRoot != null && noMovesOverlayRoot.activeSelf;
+    }
+
     private void HandleBoardWon(int seed)
     {
         Debug.Log($"Showing win popup for seed: {seed}");
+        SetNoMovesOverlayVisible(false);
         SetWinOverlayVisible(true);
     }
 
@@ -118,6 +164,14 @@ public class UIManager : MonoBehaviour
         if (winOverlayRoot != null)
         {
             winOverlayRoot.SetActive(visible);
+        }
+    }
+
+    private void SetNoMovesOverlayVisible(bool visible)
+    {
+        if (noMovesOverlayRoot != null)
+        {
+            noMovesOverlayRoot.SetActive(visible);
         }
     }
 }
