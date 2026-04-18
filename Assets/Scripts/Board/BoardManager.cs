@@ -41,8 +41,9 @@ public class BoardManager : MonoBehaviour
     private TileView[,] boardTiles;
     private readonly List<TileView> spawnedTiles = new List<TileView>();
 
-    [Header("Undo Settings")]
+    [Header("Item Settings")]
     [SerializeField] private int maxUndoHistory = 99;
+    [SerializeField] private int maxShuffleAttempts = 200;
 
     public event Action OnBoardGenerated;
 
@@ -571,6 +572,103 @@ public class BoardManager : MonoBehaviour
             boardTiles[restoredPathPosition.x, restoredPathPosition.y] = pathTile;
             pathTile.SetGridPosition(restoredPathPosition);
             pathTile.SetWorldPosition(GetWorldPosition(restoredPathPosition));
+        }
+    }
+
+    public bool TryShuffleRemainingTiles()
+    {
+        if (boardTiles == null)
+        {
+            Debug.LogWarning("Shuffle failed: board has not been generated yet.");
+            return false;
+        }
+
+        List<TileView> activeTiles = new List<TileView>();
+        List<Vector2Int> originalPositions = new List<Vector2Int>();
+
+        foreach (TileView tile in spawnedTiles)
+        {
+            if (tile == null || tile.IsPath)
+            {
+                continue;
+            }
+
+            activeTiles.Add(tile);
+            originalPositions.Add(tile.GridPosition);
+        }
+
+        if (activeTiles.Count <= 1)
+        {
+            Debug.LogWarning("Shuffle failed: not enough remaining tiles.");
+            return false;
+        }
+
+        System.Random random = new System.Random();
+
+        for (int attempt = 0; attempt < maxShuffleAttempts; attempt++)
+        {
+            List<Vector2Int> shuffledPositions = new List<Vector2Int>(originalPositions);
+            ShuffleVector2IntList(shuffledPositions, random);
+
+            if (!HasAnyTilePositionChanged(activeTiles, shuffledPositions))
+            {
+                continue;
+            }
+
+            ApplyShuffledTilePositions(activeTiles, shuffledPositions);
+
+            if (BoardMoveAnalyzer.HasAnyAvailableMove(this))
+            {
+                ClearUndoHistory();
+                OnStableBoardStateChanged?.Invoke();
+                return true;
+            }
+        }
+
+        ApplyShuffledTilePositions(activeTiles, originalPositions);
+
+        Debug.LogWarning($"Shuffle failed: could not find a valid shuffled layout within {maxShuffleAttempts} attempts.");
+        return false;
+    }
+
+    private bool HasAnyTilePositionChanged(List<TileView> activeTiles, List<Vector2Int> targetPositions)
+    {
+        for (int i = 0; i < activeTiles.Count; i++)
+        {
+            if (activeTiles[i].GridPosition != targetPositions[i])
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void ApplyShuffledTilePositions(List<TileView> activeTiles, List<Vector2Int> targetPositions)
+    {
+        foreach (TileView tile in activeTiles)
+        {
+            Vector2Int oldPosition = tile.GridPosition;
+            boardTiles[oldPosition.x, oldPosition.y] = null;
+        }
+
+        for (int i = 0; i < activeTiles.Count; i++)
+        {
+            TileView tile = activeTiles[i];
+            Vector2Int newPosition = targetPositions[i];
+
+            boardTiles[newPosition.x, newPosition.y] = tile;
+            tile.SetGridPosition(newPosition);
+            tile.SetWorldPosition(GetWorldPosition(newPosition));
+        }
+    }
+
+    private void ShuffleVector2IntList(List<Vector2Int> list, System.Random random)
+    {
+        for (int i = list.Count - 1; i > 0; i--)
+        {
+            int randomIndex = random.Next(0, i + 1);
+            (list[i], list[randomIndex]) = (list[randomIndex], list[i]);
         }
     }
 

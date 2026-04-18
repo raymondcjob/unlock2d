@@ -16,6 +16,10 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject undoBadgeRoot;
     [SerializeField] private TMP_Text undoCountText;
     private int undoUsesRemaining;
+    [SerializeField] private int debugStartingShuffleCount = 99;
+    [SerializeField] private GameObject shuffleBadgeRoot;
+    [SerializeField] private TMP_Text shuffleCountText;
+    private int shuffleUsesRemaining;
 
     [Header("No Moves Popup")]
     [SerializeField] private GameObject noMovesOverlayRoot;
@@ -50,6 +54,7 @@ public class UIManager : MonoBehaviour
 
         ResetItemCountsForFreshBoard();
         RefreshUndoBadge();
+        RefreshShuffleBadge();
     }
 
     public void OnClickOpenMenu()
@@ -134,15 +139,16 @@ public class UIManager : MonoBehaviour
     {
         ResetItemCountsForFreshBoard();
         RefreshUndoBadge();
-    }
-
-    private void ResetItemCountsForFreshBoard()
-    {
-        undoUsesRemaining = debugStartingUndoCount;
+        RefreshShuffleBadge();
     }
 
     private void RefreshUndoBadge()
     {
+        bool hasUndoAvailable =
+            undoUsesRemaining > 0 &&
+            boardManager != null &&
+            boardManager.GetUndoHistoryCount() > 0;
+
         if (undoCountText != null)
         {
             undoCountText.text = undoUsesRemaining.ToString();
@@ -156,8 +162,44 @@ public class UIManager : MonoBehaviour
 
     public void OnClickShuffle()
     {
-        Debug.Log("Shuffle button clicked.");
-        // Later: shuffle logic
+        SetMenuOverlayVisible(false);
+        SetWinOverlayVisible(false);
+        SetNoMovesOverlayVisible(false);
+        ClearBoardInteraction();
+
+        if (boardManager == null)
+        {
+            return;
+        }
+
+        if (shuffleUsesRemaining <= 0)
+        {
+            Debug.Log("No shuffle uses remaining.");
+            return;
+        }
+
+        if (!boardManager.TryShuffleRemainingTiles())
+        {
+            Debug.Log("Shuffle failed.");
+            return;
+        }
+
+        shuffleUsesRemaining--;
+        RefreshShuffleBadge();
+        RefreshUndoBadge();
+    }
+
+    private void RefreshShuffleBadge()
+    {
+        if (shuffleCountText != null)
+        {
+            shuffleCountText.text = shuffleUsesRemaining.ToString();
+        }
+
+        if (shuffleBadgeRoot != null)
+        {
+            shuffleBadgeRoot.SetActive(shuffleUsesRemaining > 0);
+        }
     }
 
     public void OnClickSwapMode()
@@ -274,5 +316,12 @@ public class UIManager : MonoBehaviour
         {
             noMovesOverlayRoot.SetActive(visible);
         }
+    }
+
+    // debug functions
+    private void ResetItemCountsForFreshBoard()
+    {
+        undoUsesRemaining = debugStartingUndoCount;
+        shuffleUsesRemaining = debugStartingShuffleCount;
     }
 }
