@@ -161,6 +161,16 @@ public class BoardInteractionController : MonoBehaviour
         autoHintTimer = 0f;
     }
 
+    public void ToggleAutoHint()
+    {
+        autoHintEnabled = !autoHintEnabled;
+
+        ClearAutoHint();
+        ResetAutoHintTimer();
+
+        Debug.Log($"Auto hint {(autoHintEnabled ? "enabled" : "disabled")}");
+    }
+
     private void HandleStableBoardStateChanged()
     {
         ClearAutoHint();

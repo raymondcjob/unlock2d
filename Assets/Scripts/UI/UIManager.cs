@@ -20,6 +20,10 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject shuffleBadgeRoot;
     [SerializeField] private TMP_Text shuffleCountText;
     private int shuffleUsesRemaining;
+    [SerializeField] private int debugStartingSwapCount = 99;
+    [SerializeField] private GameObject swapBadgeRoot;
+    [SerializeField] private TMP_Text swapCountText;
+    private int swapUsesRemaining;
 
     [Header("No Moves Popup")]
     [SerializeField] private GameObject noMovesOverlayRoot;
@@ -34,6 +38,7 @@ public class UIManager : MonoBehaviour
         {
             boardManager.OnBoardWon += HandleBoardWon;
             boardManager.OnBoardGenerated += HandleBoardGenerated;
+            boardManager.OnSwapPerformed += HandleSwapPerformed;
         }
     }
 
@@ -43,6 +48,7 @@ public class UIManager : MonoBehaviour
         {
             boardManager.OnBoardWon -= HandleBoardWon;
             boardManager.OnBoardGenerated -= HandleBoardGenerated;
+            boardManager.OnSwapPerformed -= HandleSwapPerformed;
         }
     }
 
@@ -55,6 +61,7 @@ public class UIManager : MonoBehaviour
         ResetItemCountsForFreshBoard();
         RefreshUndoBadge();
         RefreshShuffleBadge();
+        RefreshSwapBadge();
     }
 
     public void OnClickOpenMenu()
@@ -140,6 +147,7 @@ public class UIManager : MonoBehaviour
         ResetItemCountsForFreshBoard();
         RefreshUndoBadge();
         RefreshShuffleBadge();
+        RefreshSwapBadge();
     }
 
     private void RefreshUndoBadge()
@@ -206,10 +214,52 @@ public class UIManager : MonoBehaviour
     {
         SetMenuOverlayVisible(false);
 
+        if (swapUsesRemaining <= 0)
+        {
+            Debug.Log("No swap uses remaining.");
+            return;
+        }
+
         if (boardInteractionController != null)
         {
             boardInteractionController.BeginSwapSelection();
         }
+    }
+
+    private void RefreshSwapBadge()
+    {
+        if (swapCountText != null)
+        {
+            swapCountText.text = swapUsesRemaining.ToString();
+        }
+
+        if (swapBadgeRoot != null)
+        {
+            swapBadgeRoot.SetActive(swapUsesRemaining > 0);
+        }
+    }
+
+    private void HandleSwapPerformed()
+    {
+        if (swapUsesRemaining <= 0)
+        {
+            return;
+        }
+
+        swapUsesRemaining--;
+        RefreshSwapBadge();
+    }
+
+    public void OnClickSettings()
+    {
+        // Implement Settings Overlay later
+        
+        if (boardInteractionController != null)
+        {
+            boardInteractionController.ToggleAutoHint();
+        }
+
+        SetMenuOverlayVisible(false);
     }
 
     public void OnClickDebugMatchMode()
@@ -323,5 +373,6 @@ public class UIManager : MonoBehaviour
     {
         undoUsesRemaining = debugStartingUndoCount;
         shuffleUsesRemaining = debugStartingShuffleCount;
+        swapUsesRemaining = debugStartingSwapCount;
     }
 }

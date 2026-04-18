@@ -28,6 +28,7 @@ public class BoardManager : MonoBehaviour
     public event Action OnStableBoardStateChanged;
 
     public event Action<int> OnBoardWon;
+    public event Action OnBoardGenerated;
 
     [Header("References")]
     [SerializeField] private TileView tilePrefab;
@@ -44,8 +45,7 @@ public class BoardManager : MonoBehaviour
     [Header("Item Settings")]
     [SerializeField] private int maxUndoHistory = 99;
     [SerializeField] private int maxShuffleAttempts = 200;
-
-    public event Action OnBoardGenerated;
+    public event Action OnSwapPerformed;
 
     private readonly List<BoardSnapshot> undoHistory = new List<BoardSnapshot>();
 
@@ -821,7 +821,7 @@ public class BoardManager : MonoBehaviour
         }
     }
 
-        public bool SwapTiles(TileView tileA, TileView tileB)
+    public bool SwapTiles(TileView tileA, TileView tileB)
     {
         if (tileA == null || tileB == null)
         {
@@ -854,6 +854,7 @@ public class BoardManager : MonoBehaviour
         tileB.SetWorldPosition(GetWorldPosition(positionA));
 
         Debug.Log($"SwapTiles success: {tileA.name} <-> {tileB.name}");
+        OnSwapPerformed?.Invoke();
         return true;
     }
 
