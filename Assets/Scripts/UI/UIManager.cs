@@ -7,6 +7,9 @@ public class UIManager : MonoBehaviour
     [SerializeField] private BoardInteractionController boardInteractionController;
     [SerializeField] private DragPreviewController dragPreviewController;
 
+    [Header("Menu Overlay")]
+    [SerializeField] private GameObject menuOverlayRoot;
+
     [Header("Win Popup")]
     [SerializeField] private GameObject winOverlayRoot;
 
@@ -31,18 +34,32 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
+        SetMenuOverlayVisible(false);
         SetWinOverlayVisible(false);
         SetNoMovesOverlayVisible(false);
     }
 
-    public void OnClickHome()
+    public void OnClickOpenMenu()
     {
-        Debug.Log("Home button clicked.");
+        ClearBoardInteraction();
+        SetMenuOverlayVisible(true);
+    }
+
+    public void OnClickCloseMenu()
+    {
+        SetMenuOverlayVisible(false);
+    }
+
+    public void OnClickMainMenu()
+    {
+        SetMenuOverlayVisible(false);
+        Debug.Log("Main Menu button clicked.");
         // Later: SceneManager.LoadScene("MainMenu");
     }
 
-    public void OnClickResetBoard()
+    public void OnClickNewBoard()
     {
+        SetMenuOverlayVisible(false);
         SetWinOverlayVisible(false);
         SetNoMovesOverlayVisible(false);
         ClearBoardInteraction();
@@ -53,20 +70,9 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void OnClickNextGame()
+    public void OnClickRestart()
     {
-        SetWinOverlayVisible(false);
-        SetNoMovesOverlayVisible(false);
-        ClearBoardInteraction();
-
-        if (boardManager != null)
-        {
-            boardManager.GenerateNewBoard();
-        }
-    }
-
-    public void OnClickReplay()
-    {
+        SetMenuOverlayVisible(false);
         SetWinOverlayVisible(false);
         SetNoMovesOverlayVisible(false);
         ClearBoardInteraction();
@@ -77,8 +83,28 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void OnClickStore()
+    {
+        Debug.Log("Store button clicked.");
+        // Later: open store overlay / panel
+    }
+
+    public void OnClickUndo()
+    {
+        Debug.Log("Undo button clicked.");
+        // Later: undo logic
+    }
+
+    public void OnClickShuffle()
+    {
+        Debug.Log("Shuffle button clicked.");
+        // Later: shuffle logic
+    }
+
     public void OnClickSwapMode()
     {
+        SetMenuOverlayVisible(false);
+
         if (boardInteractionController != null)
         {
             boardInteractionController.BeginSwapSelection();
@@ -87,13 +113,15 @@ public class UIManager : MonoBehaviour
 
     public void OnClickDebugMatchMode()
     {
+        SetMenuOverlayVisible(false);
+
         if (boardInteractionController != null)
         {
             boardInteractionController.BeginDebugMatchSelection();
         }
     }
 
-    public void OnClickCancelDebugMode()
+    public void OnClickCancelSelectionMode()
     {
         if (boardInteractionController != null)
         {
@@ -126,7 +154,12 @@ public class UIManager : MonoBehaviour
 
     public bool IsModalOverlayVisible()
     {
-        return IsWinOverlayVisible() || IsNoMovesOverlayVisible();
+        return IsMenuOverlayVisible() || IsWinOverlayVisible() || IsNoMovesOverlayVisible();
+    }
+
+    public bool IsMenuOverlayVisible()
+    {
+        return menuOverlayRoot != null && menuOverlayRoot.activeSelf;
     }
 
     public bool IsWinOverlayVisible()
@@ -142,6 +175,7 @@ public class UIManager : MonoBehaviour
     private void HandleBoardWon(int seed)
     {
         Debug.Log($"Showing win popup for seed: {seed}");
+        SetMenuOverlayVisible(false);
         SetNoMovesOverlayVisible(false);
         SetWinOverlayVisible(true);
     }
@@ -156,6 +190,14 @@ public class UIManager : MonoBehaviour
         if (dragPreviewController != null)
         {
             dragPreviewController.ClearPreview();
+        }
+    }
+
+    private void SetMenuOverlayVisible(bool visible)
+    {
+        if (menuOverlayRoot != null)
+        {
+            menuOverlayRoot.SetActive(visible);
         }
     }
 

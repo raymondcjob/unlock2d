@@ -132,7 +132,7 @@ GameObject:
   - component: {fileID: 92558500}
   - component: {fileID: 92558499}
   m_Layer: 5
-  m_Name: Menu
+  m_Name: MenuButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -200,7 +200,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 92558500}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1201505735}
+        m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
+        m_MethodName: OnClickOpenMenu
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &92558500
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -324,7 +336,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1201505735}
         m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
-        m_MethodName: OnClickReplay
+        m_MethodName: OnClickRestart
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -333,7 +345,7 @@ MonoBehaviour:
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
-        m_CallState: 1
+        m_CallState: 2
 --- !u!114 &98734358
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -665,7 +677,7 @@ GameObject:
   - component: {fileID: 204971435}
   - component: {fileID: 204971434}
   m_Layer: 5
-  m_Name: New Game
+  m_Name: NewGame
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -737,7 +749,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1201505735}
         m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
-        m_MethodName: OnClickNextGame
+        m_MethodName: OnClickNewBoard
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -746,7 +758,7 @@ MonoBehaviour:
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
-        m_CallState: 1
+        m_CallState: 2
 --- !u!114 &204971435
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1337,7 +1349,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 408855608}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1201505735}
+        m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
+        m_MethodName: OnClickUndo
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &408855608
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1713,7 +1737,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1201505735}
         m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
-        m_MethodName: OnClickDebugSwapMode
+        m_MethodName: OnClickSwapMode
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1722,7 +1746,7 @@ MonoBehaviour:
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
-        m_CallState: 1
+        m_CallState: 2
 --- !u!114 &551646215
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1846,7 +1870,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1201505735}
         m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
-        m_MethodName: OnClickHome
+        m_MethodName: OnClickMainMenu
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1855,7 +1879,7 @@ MonoBehaviour:
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
-        m_CallState: 1
+        m_CallState: 2
 --- !u!114 &600929067
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2116,7 +2140,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1201505735}
         m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
-        m_MethodName: OnClickReplay
+        m_MethodName: OnClickRestart
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2125,7 +2149,7 @@ MonoBehaviour:
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
-        m_CallState: 1
+        m_CallState: 2
 --- !u!114 &651948993
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2311,7 +2335,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 713252160}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1201505735}
+        m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
+        m_MethodName: OnClickShuffle
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &713252160
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2363,7 +2399,7 @@ GameObject:
   - component: {fileID: 733944642}
   - component: {fileID: 733944641}
   m_Layer: 5
-  m_Name: NextGame
+  m_Name: NewGame
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2435,7 +2471,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1201505735}
         m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
-        m_MethodName: OnClickNextGame
+        m_MethodName: OnClickNewBoard
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2444,7 +2480,7 @@ MonoBehaviour:
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
-        m_CallState: 1
+        m_CallState: 2
 --- !u!114 &733944642
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3592,6 +3628,7 @@ MonoBehaviour:
   boardManager: {fileID: 2074807008}
   boardInteractionController: {fileID: 753556429}
   dragPreviewController: {fileID: 936484176}
+  menuOverlayRoot: {fileID: 0}
   winOverlayRoot: {fileID: 219030155}
   noMovesOverlayRoot: {fileID: 533266663}
 --- !u!1 &1324459870
@@ -3696,7 +3733,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Next Game
+  m_text: New Game
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -4293,7 +4330,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1858787149}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1201505735}
+        m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
+        m_MethodName: OnClickCloseMenu
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1858787149
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4414,7 +4463,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1864442117}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1201505735}
+        m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
+        m_MethodName: OnClickDebugMatchMode
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1864442117
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4603,7 +4664,7 @@ GameObject:
   - component: {fileID: 1903456791}
   - component: {fileID: 1903456790}
   m_Layer: 5
-  m_Name: Store
+  m_Name: StoreButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4672,7 +4733,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1903456791}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1201505735}
+        m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
+        m_MethodName: OnClickStore
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1903456791
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5026,7 +5099,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1201505735}
         m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
-        m_MethodName: OnClickHome
+        m_MethodName: OnClickMainMenu
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -5035,7 +5108,7 @@ MonoBehaviour:
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
-        m_CallState: 1
+        m_CallState: 2
 --- !u!114 &2142417750
 MonoBehaviour:
   m_ObjectHideFlags: 0
