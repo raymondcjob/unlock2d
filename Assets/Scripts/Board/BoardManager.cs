@@ -41,6 +41,33 @@ public class BoardManager : MonoBehaviour
     private TileView[,] boardTiles;
     private readonly List<TileView> spawnedTiles = new List<TileView>();
 
+    [Header("Undo Settings")]
+    [SerializeField] private int maxUndoHistory = 99;
+
+    public event Action OnBoardGenerated;
+
+    private readonly List<BoardSnapshot> undoHistory = new List<BoardSnapshot>();
+
+    private sealed class BoardSnapshot
+    {
+        public int RemainingFaceUpTiles;
+        public TileState[] TileStates;
+    }
+
+    private struct TileState
+    {
+        public int TileTypeId;
+        public Vector2Int GridPosition;
+        public bool IsPath;
+
+        public TileState(int tileTypeId, Vector2Int gridPosition, bool isPath)
+        {
+            TileTypeId = tileTypeId;
+            GridPosition = gridPosition;
+            IsPath = isPath;
+        }
+    }
+
     private void Start()
     {
         if (generateRandomSeedOnStart)
@@ -75,6 +102,9 @@ public class BoardManager : MonoBehaviour
         hasGeneratedBoard = true;
         currentSeed = FindNextValidSeed(seed);
         GenerateBoard();
+
+        ClearUndoHistory();
+        OnBoardGenerated?.Invoke();
         OnStableBoardStateChanged?.Invoke();
     }
 
@@ -128,6 +158,118 @@ public class BoardManager : MonoBehaviour
     public int GetRemainingFaceUpTiles()
     {
         return remainingFaceUpTiles;
+    }
+
+    public int GetUndoHistoryCount()
+    {
+        return undoHistory.Count;
+    }
+
+    public void ClearUndoHistory()
+    {
+        undoHistory.Clear();
+    }
+
+    public void RecordUndoSnapshot()
+    {
+        if (spawnedTiles.Count == 0)
+        {
+            return;
+        }
+
+        BoardSnapshot snapshot = new BoardSnapshot
+        {
+            RemainingFaceUpTiles = remainingFaceUpTiles,
+            TileStates = new TileState[spawnedTiles.Count]
+        };
+
+        for (int i = 0; i < spawnedTiles.Count; i++)
+        {
+            TileView tile = spawnedTiles[i];
+
+            if (tile == null)
+            {
+                continue;
+            }
+
+            snapshot.TileStates[i] = new TileState(
+                tile.TileTypeId,
+                tile.GridPosition,
+                tile.IsPath);
+        }
+
+        undoHistory.Add(snapshot);
+
+        if (maxUndoHistory > 0 && undoHistory.Count > maxUndoHistory)
+        {
+            undoHistory.RemoveAt(0);
+        }
+    }
+
+    public void DiscardLastUndoSnapshot()
+    {
+        if (undoHistory.Count == 0)
+        {
+            return;
+        }
+
+        undoHistory.RemoveAt(undoHistory.Count - 1);
+    }
+
+    public bool TryUndoLastMove()
+    {
+        if (undoHistory.Count == 0)
+        {
+            return false;
+        }
+
+        BoardSnapshot snapshot = undoHistory[undoHistory.Count - 1];
+        undoHistory.RemoveAt(undoHistory.Count - 1);
+
+        RestoreSnapshot(snapshot);
+        OnStableBoardStateChanged?.Invoke();
+        return true;
+    }
+
+    private void RestoreSnapshot(BoardSnapshot snapshot)
+    {
+        if (snapshot == null || snapshot.TileStates == null)
+        {
+            Debug.LogWarning("RestoreSnapshot failed: snapshot is null.");
+            return;
+        }
+
+        if (snapshot.TileStates.Length != spawnedTiles.Count)
+        {
+            Debug.LogWarning("RestoreSnapshot failed: snapshot size does not match spawned tile count.");
+            return;
+        }
+
+        boardTiles = new TileView[boardWidth, boardHeight];
+        remainingFaceUpTiles = snapshot.RemainingFaceUpTiles;
+
+        for (int i = 0; i < spawnedTiles.Count; i++)
+        {
+            TileView tile = spawnedTiles[i];
+            TileState state = snapshot.TileStates[i];
+
+            if (tile == null)
+            {
+                continue;
+            }
+
+            Sprite faceUpSprite = tileSprites[state.TileTypeId];
+
+            tile.Initialize(faceUpSprite, state.TileTypeId, state.GridPosition);
+
+            if (state.IsPath)
+            {
+                tile.ConvertToPath(backTileSprite);
+            }
+
+            tile.SetWorldPosition(GetWorldPosition(state.GridPosition));
+            boardTiles[state.GridPosition.x, state.GridPosition.y] = tile;
+        }
     }
 
     public int GetBoardWidth()

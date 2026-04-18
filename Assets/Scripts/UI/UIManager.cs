@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 
 public class UIManager : MonoBehaviour
 {
@@ -10,17 +11,25 @@ public class UIManager : MonoBehaviour
     [Header("Menu Overlay")]
     [SerializeField] private GameObject menuOverlayRoot;
 
-    [Header("Win Popup")]
-    [SerializeField] private GameObject winOverlayRoot;
+    [Header("Item Counts")]
+    [SerializeField] private int debugStartingUndoCount = 99;
+    [SerializeField] private GameObject undoBadgeRoot;
+    [SerializeField] private TMP_Text undoCountText;
+    private int undoUsesRemaining;
 
     [Header("No Moves Popup")]
     [SerializeField] private GameObject noMovesOverlayRoot;
+
+    [Header("Win Popup")]
+    [SerializeField] private GameObject winOverlayRoot;
+
 
     private void OnEnable()
     {
         if (boardManager != null)
         {
             boardManager.OnBoardWon += HandleBoardWon;
+            boardManager.OnBoardGenerated += HandleBoardGenerated;
         }
     }
 
@@ -29,6 +38,7 @@ public class UIManager : MonoBehaviour
         if (boardManager != null)
         {
             boardManager.OnBoardWon -= HandleBoardWon;
+            boardManager.OnBoardGenerated -= HandleBoardGenerated;
         }
     }
 
@@ -37,6 +47,9 @@ public class UIManager : MonoBehaviour
         SetMenuOverlayVisible(false);
         SetWinOverlayVisible(false);
         SetNoMovesOverlayVisible(false);
+
+        ResetItemCountsForFreshBoard();
+        RefreshUndoBadge();
     }
 
     public void OnClickOpenMenu()
@@ -91,8 +104,54 @@ public class UIManager : MonoBehaviour
 
     public void OnClickUndo()
     {
-        Debug.Log("Undo button clicked.");
-        // Later: undo logic
+        SetMenuOverlayVisible(false);
+        SetWinOverlayVisible(false);
+        SetNoMovesOverlayVisible(false);
+        ClearBoardInteraction();
+
+        if (boardManager == null)
+        {
+            return;
+        }
+
+        if (undoUsesRemaining <= 0)
+        {
+            Debug.Log("No undo uses remaining.");
+            return;
+        }
+
+        if (!boardManager.TryUndoLastMove())
+        {
+            Debug.Log("No moves available to undo.");
+            return;
+        }
+
+        undoUsesRemaining--;
+        RefreshUndoBadge();
+    }
+
+    private void HandleBoardGenerated()
+    {
+        ResetItemCountsForFreshBoard();
+        RefreshUndoBadge();
+    }
+
+    private void ResetItemCountsForFreshBoard()
+    {
+        undoUsesRemaining = debugStartingUndoCount;
+    }
+
+    private void RefreshUndoBadge()
+    {
+        if (undoCountText != null)
+        {
+            undoCountText.text = undoUsesRemaining.ToString();
+        }
+
+        if (undoBadgeRoot != null)
+        {
+            undoBadgeRoot.SetActive(undoUsesRemaining > 0);
+        }
     }
 
     public void OnClickShuffle()

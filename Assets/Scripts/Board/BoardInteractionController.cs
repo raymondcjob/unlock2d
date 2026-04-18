@@ -354,6 +354,7 @@ public class BoardInteractionController : MonoBehaviour
 
             if (candidates.Count == 1)
             {
+                boardManager.RecordUndoSnapshot();
                 boardManager.ResolveMatch(activeTile, candidates[0]);
                 ResetInteractionState();
                 return;
@@ -460,6 +461,7 @@ public class BoardInteractionController : MonoBehaviour
             return false;
         }
 
+        boardManager.RecordUndoSnapshot();
         StorePendingDragMove(movedGroup, originalActivePosition, currentDragDirection, chosenSteps);
         boardManager.MoveTileGroup(activeTile, connectedTiles, currentDragDirection, chosenSteps);
         return true;
@@ -557,6 +559,13 @@ public class BoardInteractionController : MonoBehaviour
 
         if (clickedTile != null && currentMatchChoices.Contains(clickedTile))
         {
+            bool cameFromPendingDragMove = isAwaitingDragSelectionCancelRestore;
+
+            if (!cameFromPendingDragMove)
+            {
+                boardManager.RecordUndoSnapshot();
+            }
+
             boardManager.ResolveMatch(activeTile, clickedTile);
             ClearPendingDragMove();
             ExitMatchChoiceState();
@@ -568,7 +577,15 @@ public class BoardInteractionController : MonoBehaviour
 
     private void CancelMatchChoice()
     {
+        bool cameFromPendingDragMove = isAwaitingDragSelectionCancelRestore;
+
         RestorePendingDragMoveIfNeeded();
+
+        if (cameFromPendingDragMove)
+        {
+            boardManager.DiscardLastUndoSnapshot();
+        }
+
         ExitMatchChoiceState();
     }
 
