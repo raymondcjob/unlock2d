@@ -581,6 +581,42 @@ public class BoardManager : MonoBehaviour
         }
     }
 
+        public bool SwapTiles(TileView tileA, TileView tileB)
+    {
+        if (tileA == null || tileB == null)
+        {
+            Debug.LogWarning("SwapTiles failed: one or both tiles are null.");
+            return false;
+        }
+
+        if (tileA == tileB)
+        {
+            Debug.LogWarning("SwapTiles failed: cannot swap the same tile.");
+            return false;
+        }
+
+        Vector2Int positionA = tileA.GridPosition;
+        Vector2Int positionB = tileB.GridPosition;
+
+        if (!IsInsideBoardPosition(positionA) || !IsInsideBoardPosition(positionB))
+        {
+            Debug.LogWarning("SwapTiles failed: one or both tiles are outside the board.");
+            return false;
+        }
+
+        boardTiles[positionA.x, positionA.y] = tileB;
+        boardTiles[positionB.x, positionB.y] = tileA;
+
+        tileA.SetGridPosition(positionB);
+        tileA.SetWorldPosition(GetWorldPosition(positionB));
+
+        tileB.SetGridPosition(positionA);
+        tileB.SetWorldPosition(GetWorldPosition(positionA));
+
+        Debug.Log($"SwapTiles success: {tileA.name} <-> {tileB.name}");
+        return true;
+    }
+
 
 
     // Debug Functions
@@ -600,41 +636,7 @@ public class BoardManager : MonoBehaviour
         CheckWinCondition();
     }
 
-    public bool DebugSwapTiles(TileView tileA, TileView tileB)
-    {
-        if (tileA == null || tileB == null)
-        {
-            Debug.LogWarning("DebugSwapTiles failed: one or both tiles are null.");
-            return false;
-        }
 
-        if (tileA == tileB)
-        {
-            Debug.LogWarning("DebugSwapTiles failed: cannot swap the same tile.");
-            return false;
-        }
-
-        Vector2Int positionA = tileA.GridPosition;
-        Vector2Int positionB = tileB.GridPosition;
-
-        if (!IsInsideBoardPosition(positionA) || !IsInsideBoardPosition(positionB))
-        {
-            Debug.LogWarning("DebugSwapTiles failed: one or both tiles are outside the board.");
-            return false;
-        }
-
-        boardTiles[positionA.x, positionA.y] = tileB;
-        boardTiles[positionB.x, positionB.y] = tileA;
-
-        tileA.SetGridPosition(positionB);
-        tileA.SetWorldPosition(GetWorldPosition(positionB));
-
-        tileB.SetGridPosition(positionA);
-        tileB.SetWorldPosition(GetWorldPosition(positionA));
-
-        Debug.Log($"DebugSwapTiles success: {tileA.name} <-> {tileB.name}");
-        return true;
-    }
 
     public bool DebugMatchTiles(TileView tileA, TileView tileB)
     {

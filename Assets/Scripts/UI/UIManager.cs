@@ -77,11 +77,11 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void OnClickDebugSwapMode()
+    public void OnClickSwapMode()
     {
         if (boardInteractionController != null)
         {
-            boardInteractionController.BeginDebugSwapSelection();
+            boardInteractionController.BeginSwapSelection();
         }
     }
 
@@ -97,7 +97,7 @@ public class UIManager : MonoBehaviour
     {
         if (boardInteractionController != null)
         {
-            boardInteractionController.CancelDebugSelectionMode();
+            boardInteractionController.CancelSelectionMode();
         }
     }
 

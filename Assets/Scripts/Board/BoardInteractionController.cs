@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class BoardInteractionController : MonoBehaviour
 {
-    private enum DebugSelectionMode
+    private enum SelectionMode
     {
         None,
         Swap,
@@ -49,8 +49,8 @@ public class BoardInteractionController : MonoBehaviour
     private readonly List<TileView> autoHintTiles = new List<TileView>();
 
 
-    private DebugSelectionMode debugSelectionMode = DebugSelectionMode.None;
-    private TileView debugSelectedTileA;
+    private SelectionMode selectionMode = SelectionMode.None;
+    private TileView selectedTileA;
 
     private void OnEnable()
     {
@@ -96,7 +96,7 @@ public class BoardInteractionController : MonoBehaviour
             return;
         }
 
-        if (isPointerHeld || isDragging || isAwaitingMatchChoice || debugSelectionMode != DebugSelectionMode.None)
+        if (isPointerHeld || isDragging || isAwaitingMatchChoice || selectionMode != SelectionMode.None)
         {
             return;
         }
@@ -231,7 +231,7 @@ public class BoardInteractionController : MonoBehaviour
         Vector3 worldPosition = GetMouseWorldPosition();
         TileView clickedTile = GetTileUnderPointer(worldPosition);
 
-        if (debugSelectionMode != DebugSelectionMode.None)
+        if (selectionMode != SelectionMode.None)
         {
             HandleDebugTileSelection(clickedTile);
             return;
@@ -384,10 +384,10 @@ public class BoardInteractionController : MonoBehaviour
             return;
         }
 
-        if (debugSelectedTileA == null)
+        if (selectedTileA == null)
         {
             ClearInteractionVisuals();
-            debugSelectedTileA = clickedTile;
+            selectedTileA = clickedTile;
             clickedTile.SetCustomScale(1.15f, 12);
             enlargedTiles.Add(clickedTile);
             Debug.Log($"Debug selection A: {clickedTile.name}");
@@ -396,16 +396,16 @@ public class BoardInteractionController : MonoBehaviour
 
         TileView debugSelectedTileB = clickedTile;
 
-        if (debugSelectionMode == DebugSelectionMode.Swap)
+        if (selectionMode == SelectionMode.Swap)
         {
-            boardManager.DebugSwapTiles(debugSelectedTileA, debugSelectedTileB);
+            boardManager.SwapTiles(selectedTileA, debugSelectedTileB);
         }
-        else if (debugSelectionMode == DebugSelectionMode.Match)
+        else if (selectionMode == SelectionMode.Match)
         {
-            boardManager.DebugMatchTiles(debugSelectedTileA, debugSelectedTileB);
+            boardManager.DebugMatchTiles(selectedTileA, debugSelectedTileB);
         }
 
-        CancelDebugSelectionMode();
+        CancelSelectionMode();
     }
 
     private bool TryResolveDragMove()
@@ -671,29 +671,29 @@ public class BoardInteractionController : MonoBehaviour
         ResetAutoHintTimer();
         currentMatchChoices.Clear();
         dragCreatedMatchChoices.Clear();
-        CancelDebugSelectionMode();
+        CancelSelectionMode();
         ResetInteractionState();
     }
 
-    public void BeginDebugSwapSelection()
+    public void BeginSwapSelection()
     {
         ForceClearInteractionState();
-        debugSelectionMode = DebugSelectionMode.Swap;
-        Debug.Log("Debug swap mode enabled. Select 2 tiles.");
+        selectionMode = SelectionMode.Swap;
+        Debug.Log("Swap mode enabled. Select 2 tiles.");
     }
 
     public void BeginDebugMatchSelection()
     {
         ForceClearInteractionState();
-        debugSelectionMode = DebugSelectionMode.Match;
+        selectionMode = SelectionMode.Match;
         Debug.Log("Debug match mode enabled. Select 2 tiles.");
     }
 
-    public void CancelDebugSelectionMode()
+    public void CancelSelectionMode()
     {
         ClearInteractionVisuals();
-        debugSelectedTileA = null;
-        debugSelectionMode = DebugSelectionMode.None;
+        selectedTileA = null;
+        selectionMode = SelectionMode.None;
     }
 
     private void ResetInteractionState()
