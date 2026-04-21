@@ -5,6 +5,7 @@ public class MainMenuManager : MonoBehaviour
 {
     [Header("Scene Names")]
     [SerializeField] private string gameSceneName = "GameScene";
+    [SerializeField] private string settingsSceneName = "Settings";
 
     [Header("Buttons")]
     [SerializeField] private UIButtonStateView continueButtonStateView;
@@ -74,8 +75,7 @@ public class MainMenuManager : MonoBehaviour
 
     public void OnClickSettings()
     {
-        Debug.Log("Settings button clicked.");
-        // Later: open settings panel
+        SceneManager.LoadScene(settingsSceneName);
     }
 
     public void OnClickHowToPlay()
