@@ -1,26 +1,28 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using TMPro;
 
 public class UIManager : MonoBehaviour
 {
+    [Header("Scene Names")]
+    [SerializeField] private string mainMenuSceneName = "MainMenu";
+
     [Header("References")]
     [SerializeField] private BoardManager boardManager;
     [SerializeField] private BoardInteractionController boardInteractionController;
     [SerializeField] private DragPreviewController dragPreviewController;
+    [SerializeField] private DebugSettings debugSettings;
 
     [Header("Menu Overlay")]
     [SerializeField] private GameObject menuOverlayRoot;
 
     [Header("Item Counts")]
-    [SerializeField] private int debugStartingUndoCount = 99;
     [SerializeField] private GameObject undoBadgeRoot;
     [SerializeField] private TMP_Text undoCountText;
     private int undoUsesRemaining;
-    [SerializeField] private int debugStartingShuffleCount = 99;
     [SerializeField] private GameObject shuffleBadgeRoot;
     [SerializeField] private TMP_Text shuffleCountText;
     private int shuffleUsesRemaining;
-    [SerializeField] private int debugStartingSwapCount = 99;
     [SerializeField] private GameObject swapBadgeRoot;
     [SerializeField] private TMP_Text swapCountText;
     private int swapUsesRemaining;
@@ -78,8 +80,11 @@ public class UIManager : MonoBehaviour
     public void OnClickMainMenu()
     {
         SetMenuOverlayVisible(false);
-        Debug.Log("Main Menu button clicked.");
-        // Later: SceneManager.LoadScene("MainMenu");
+        SetWinOverlayVisible(false);
+        SetNoMovesOverlayVisible(false);
+        ClearBoardInteraction();
+
+        SceneManager.LoadScene(mainMenuSceneName);
     }
 
     public void OnClickNewBoard()
@@ -126,7 +131,7 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        if (undoUsesRemaining <= 0)
+        if (!HasUndoUseAvailable())
         {
             Debug.Log("No undo uses remaining.");
             return;
@@ -138,7 +143,7 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        undoUsesRemaining--;
+        ConsumeUndoUse();
         RefreshUndoBadge();
     }
 
@@ -152,19 +157,14 @@ public class UIManager : MonoBehaviour
 
     private void RefreshUndoBadge()
     {
-        bool hasUndoAvailable =
-            undoUsesRemaining > 0 &&
-            boardManager != null &&
-            boardManager.GetUndoHistoryCount() > 0;
-
         if (undoCountText != null)
         {
-            undoCountText.text = undoUsesRemaining.ToString();
+            undoCountText.text = IsDebugModeEnabled() ? "Free" : undoUsesRemaining.ToString();
         }
 
         if (undoBadgeRoot != null)
         {
-            undoBadgeRoot.SetActive(undoUsesRemaining > 0);
+            undoBadgeRoot.SetActive(true);
         }
     }
 
@@ -180,7 +180,7 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        if (shuffleUsesRemaining <= 0)
+        if (!HasShuffleUseAvailable())
         {
             Debug.Log("No shuffle uses remaining.");
             return;
@@ -192,7 +192,7 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        shuffleUsesRemaining--;
+        ConsumeShuffleUse();
         RefreshShuffleBadge();
         RefreshUndoBadge();
     }
@@ -201,12 +201,12 @@ public class UIManager : MonoBehaviour
     {
         if (shuffleCountText != null)
         {
-            shuffleCountText.text = shuffleUsesRemaining.ToString();
+            shuffleCountText.text = IsDebugModeEnabled() ? "Free" : shuffleUsesRemaining.ToString();
         }
 
         if (shuffleBadgeRoot != null)
         {
-            shuffleBadgeRoot.SetActive(shuffleUsesRemaining > 0);
+            shuffleBadgeRoot.SetActive(true);
         }
     }
 
@@ -214,7 +214,7 @@ public class UIManager : MonoBehaviour
     {
         SetMenuOverlayVisible(false);
 
-        if (swapUsesRemaining <= 0)
+        if (!HasSwapUseAvailable())
         {
             Debug.Log("No swap uses remaining.");
             return;
@@ -230,23 +230,18 @@ public class UIManager : MonoBehaviour
     {
         if (swapCountText != null)
         {
-            swapCountText.text = swapUsesRemaining.ToString();
+            swapCountText.text = IsDebugModeEnabled() ? "Free" : swapUsesRemaining.ToString();
         }
 
         if (swapBadgeRoot != null)
         {
-            swapBadgeRoot.SetActive(swapUsesRemaining > 0);
+            swapBadgeRoot.SetActive(true);
         }
     }
 
     private void HandleSwapPerformed()
     {
-        if (swapUsesRemaining <= 0)
-        {
-            return;
-        }
-
-        swapUsesRemaining--;
+        ConsumeSwapUse();
         RefreshSwapBadge();
     }
 
@@ -260,16 +255,6 @@ public class UIManager : MonoBehaviour
         }
 
         SetMenuOverlayVisible(false);
-    }
-
-    public void OnClickDebugMatchMode()
-    {
-        SetMenuOverlayVisible(false);
-
-        if (boardInteractionController != null)
-        {
-            boardInteractionController.BeginDebugMatchSelection();
-        }
     }
 
     public void OnClickCancelSelectionMode()
@@ -368,11 +353,54 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // debug functions
     private void ResetItemCountsForFreshBoard()
     {
-        undoUsesRemaining = debugStartingUndoCount;
-        shuffleUsesRemaining = debugStartingShuffleCount;
-        swapUsesRemaining = debugStartingSwapCount;
+        undoUsesRemaining = 0;
+        shuffleUsesRemaining = 0;
+        swapUsesRemaining = 0;
+    }
+
+    private bool HasUndoUseAvailable()
+    {
+        return IsDebugModeEnabled() || undoUsesRemaining > 0;
+    }
+
+    private bool HasShuffleUseAvailable()
+    {
+        return IsDebugModeEnabled() || shuffleUsesRemaining > 0;
+    }
+
+    private bool HasSwapUseAvailable()
+    {
+        return IsDebugModeEnabled() || swapUsesRemaining > 0;
+    }
+
+    private void ConsumeUndoUse()
+    {
+        if (!IsDebugModeEnabled() && undoUsesRemaining > 0)
+        {
+            undoUsesRemaining--;
+        }
+    }
+
+    private void ConsumeShuffleUse()
+    {
+        if (!IsDebugModeEnabled() && shuffleUsesRemaining > 0)
+        {
+            shuffleUsesRemaining--;
+        }
+    }
+
+    private void ConsumeSwapUse()
+    {
+        if (!IsDebugModeEnabled() && swapUsesRemaining > 0)
+        {
+            swapUsesRemaining--;
+        }
+    }
+
+    private bool IsDebugModeEnabled()
+    {
+        return debugSettings != null && debugSettings.DebugMode;
     }
 }

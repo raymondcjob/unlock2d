@@ -233,7 +233,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -261332329287030631, guid: 3e3e8d75f3ee9a94291cb65f2f2bec05, type: 3}
+  m_Sprite: {fileID: -2865760320553150540, guid: 542a7f673be15494aae071141447c5ea, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2445,7 +2445,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 100, y: -280}
-  m_SizeDelta: {x: 350, y: 100}
+  m_SizeDelta: {x: 300, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &651948992
 MonoBehaviour:
@@ -2777,7 +2777,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 100, y: -165}
-  m_SizeDelta: {x: 350, y: 100}
+  m_SizeDelta: {x: 300, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &733944641
 MonoBehaviour:
@@ -3946,17 +3946,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 081545eaa1d65ac4fb259fcf6f3f7aed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  mainMenuSceneName: MainMenu
   boardManager: {fileID: 2074807008}
   boardInteractionController: {fileID: 753556429}
   dragPreviewController: {fileID: 936484176}
+  debugSettings: {fileID: 1562327444}
   menuOverlayRoot: {fileID: 1153341302}
-  debugStartingUndoCount: 99
   undoBadgeRoot: {fileID: 2096522071}
   undoCountText: {fileID: 2143096409}
-  debugStartingShuffleCount: 99
   shuffleBadgeRoot: {fileID: 491812834}
   shuffleCountText: {fileID: 1963955753}
-  debugStartingSwapCount: 99
   swapBadgeRoot: {fileID: 1252034321}
   swapCountText: {fileID: 491936158}
   noMovesOverlayRoot: {fileID: 533266663}
@@ -4235,7 +4234,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1400191954
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4460,6 +4459,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1562327443}
+  - component: {fileID: 1562327444}
+  - component: {fileID: 1562327445}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -4482,6 +4483,35 @@ Transform:
   m_Children: []
   m_Father: {fileID: 668526852}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1562327444
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1562327442}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a9b0a6e2f3b4e858cc0a7912468f001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  debugMode: 0
+--- !u!114 &1562327445
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1562327442}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b8c1b7f304c4f969dd1b8923579f112, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  debugSettings: {fileID: 1562327444}
+  boardInteractionController: {fileID: 753556429}
+  menuOverlayRoot: {fileID: 1153341302}
+  debugBarRoot: {fileID: 1400191953}
 --- !u!1 &1579207675
 GameObject:
   m_ObjectHideFlags: 0
@@ -5004,8 +5034,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1201505735}
-        m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
+      - m_Target: {fileID: 1562327445}
+        m_TargetAssemblyTypeName: DebugActions, Assembly-CSharp
         m_MethodName: OnClickDebugMatchMode
         m_Mode: 1
         m_Arguments:
@@ -5305,7 +5335,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -2267519659496603882, guid: cd71dfef01b23384fb1d19c82c72131b, type: 3}
+  m_Sprite: {fileID: 1996988363127727668, guid: 1514a08dd22188b4384d1a57d825d9b4, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -5805,7 +5835,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 100, y: -50}
-  m_SizeDelta: {x: 350, y: 100}
+  m_SizeDelta: {x: 300, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2142417749
 MonoBehaviour:

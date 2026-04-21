@@ -243,7 +243,7 @@ public class BoardInteractionController : MonoBehaviour
 
         if (selectionMode != SelectionMode.None)
         {
-            HandleDebugTileSelection(clickedTile);
+            HandleTileSelection(clickedTile);
             return;
         }
 
@@ -388,7 +388,7 @@ public class BoardInteractionController : MonoBehaviour
         ResetInteractionState();
     }
 
-    private void HandleDebugTileSelection(TileView clickedTile)
+    private void HandleTileSelection(TileView clickedTile)
     {
         if (clickedTile == null || clickedTile.IsPath)
         {
@@ -401,19 +401,19 @@ public class BoardInteractionController : MonoBehaviour
             selectedTileA = clickedTile;
             clickedTile.SetCustomScale(1.15f, 12);
             enlargedTiles.Add(clickedTile);
-            Debug.Log($"Debug selection A: {clickedTile.name}");
+            Debug.Log($"Selection A: {clickedTile.name}");
             return;
         }
 
-        TileView debugSelectedTileB = clickedTile;
+        TileView selectedTileB = clickedTile;
 
         if (selectionMode == SelectionMode.Swap)
         {
-            boardManager.SwapTiles(selectedTileA, debugSelectedTileB);
+            boardManager.SwapTiles(selectedTileA, selectedTileB);
         }
         else if (selectionMode == SelectionMode.Match)
         {
-            boardManager.DebugMatchTiles(selectedTileA, debugSelectedTileB);
+            boardManager.DebugMatchTiles(selectedTileA, selectedTileB);
         }
 
         CancelSelectionMode();
