@@ -29,6 +29,8 @@ public class BoardManager : MonoBehaviour
 
     public event Action<int> OnBoardWon;
     public event Action OnBoardGenerated;
+    public event Action OnNewRandomBoardGenerated;
+    public event Action OnBoardRestarted;
 
     [Header("References")]
     [SerializeField] private TileView tilePrefab;
@@ -69,8 +71,32 @@ public class BoardManager : MonoBehaviour
         }
     }
 
+    [Serializable]
+    public sealed class SaveData
+    {
+        public int Seed;
+        public int BoardWidth;
+        public int BoardHeight;
+        public int RemainingFaceUpTiles;
+        public List<SavedTileState> Tiles;
+    }
+
+    [Serializable]
+    public sealed class SavedTileState
+    {
+        public int TileTypeId;
+        public int X;
+        public int Y;
+        public bool IsPath;
+    }
+
     private void Start()
     {
+        if (SaveGameManager.ShouldSkipBoardAutoGenerateOnSceneStart())
+        {
+            return;
+        }
+
         if (generateRandomSeedOnStart)
         {
             GenerateNewBoard();
@@ -85,6 +111,7 @@ public class BoardManager : MonoBehaviour
     {
         int newSeed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
         GenerateBoardFromSeed(newSeed);
+        OnNewRandomBoardGenerated?.Invoke();
     }
 
     public void ReplayCurrentBoard()
@@ -96,6 +123,7 @@ public class BoardManager : MonoBehaviour
         }
 
         GenerateBoardFromSeed(currentSeed);
+        OnBoardRestarted?.Invoke();
     }
 
     public void GenerateBoardFromSeed(int seed)
@@ -159,6 +187,19 @@ public class BoardManager : MonoBehaviour
     public int GetRemainingFaceUpTiles()
     {
         return remainingFaceUpTiles;
+    }
+
+    public bool HasFaceDownTiles()
+    {
+        foreach (TileView tile in spawnedTiles)
+        {
+            if (tile != null && tile.IsPath)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public int GetUndoHistoryCount()
@@ -326,6 +367,97 @@ public class BoardManager : MonoBehaviour
                 index++;
             }
         }
+    }
+
+    public SaveData CaptureSaveData()
+    {
+        SaveData saveData = new SaveData
+        {
+            Seed = currentSeed,
+            BoardWidth = boardWidth,
+            BoardHeight = boardHeight,
+            RemainingFaceUpTiles = remainingFaceUpTiles,
+            Tiles = new List<SavedTileState>()
+        };
+
+        foreach (TileView tile in spawnedTiles)
+        {
+            if (tile == null)
+            {
+                continue;
+            }
+
+            saveData.Tiles.Add(new SavedTileState
+            {
+                TileTypeId = tile.TileTypeId,
+                X = tile.GridPosition.x,
+                Y = tile.GridPosition.y,
+                IsPath = tile.IsPath
+            });
+        }
+
+        return saveData;
+    }
+
+    public bool RestoreFromSaveData(SaveData saveData)
+    {
+        if (saveData == null || saveData.Tiles == null)
+        {
+            Debug.LogWarning("RestoreFromSaveData failed: save data is missing.");
+            return false;
+        }
+
+        if (saveData.BoardWidth != boardWidth || saveData.BoardHeight != boardHeight)
+        {
+            Debug.LogWarning("RestoreFromSaveData failed: save board size does not match this board.");
+            return false;
+        }
+
+        if (tileSprites == null || tileSprites.Length != 34)
+        {
+            Debug.LogError("RestoreFromSaveData failed: BoardManager needs exactly 34 tile sprites.");
+            return false;
+        }
+
+        ClearBoard();
+        CalculateSpacingFromPrefabScale();
+
+        hasGeneratedBoard = true;
+        currentSeed = saveData.Seed;
+        remainingFaceUpTiles = saveData.RemainingFaceUpTiles;
+        boardTiles = new TileView[boardWidth, boardHeight];
+
+        foreach (SavedTileState tileState in saveData.Tiles)
+        {
+            if (!IsInsideBoardPosition(new Vector2Int(tileState.X, tileState.Y)))
+            {
+                Debug.LogWarning($"RestoreFromSaveData skipped tile outside board: ({tileState.X}, {tileState.Y}).");
+                continue;
+            }
+
+            if (tileState.TileTypeId < 0 || tileState.TileTypeId >= tileSprites.Length)
+            {
+                Debug.LogWarning($"RestoreFromSaveData skipped tile with invalid type: {tileState.TileTypeId}.");
+                continue;
+            }
+
+            Vector2Int gridPosition = new Vector2Int(tileState.X, tileState.Y);
+            TileView spawnedTile = Instantiate(tilePrefab, GetWorldPosition(gridPosition), Quaternion.identity, tileContainer);
+            spawnedTile.name = $"Tile_{tileState.X}_{tileState.Y}_{tileState.TileTypeId}";
+            spawnedTile.Initialize(tileSprites[tileState.TileTypeId], tileState.TileTypeId, gridPosition);
+
+            if (tileState.IsPath)
+            {
+                spawnedTile.ConvertToPath(backTileSprite);
+            }
+
+            boardTiles[tileState.X, tileState.Y] = spawnedTile;
+            spawnedTiles.Add(spawnedTile);
+        }
+
+        ClearUndoHistory();
+        OnStableBoardStateChanged?.Invoke();
+        return true;
     }
 
     public void ResolveMatch(TileView tileA, TileView tileB)

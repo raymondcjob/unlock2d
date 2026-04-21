@@ -80,8 +80,23 @@ public class BoardInteractionController : MonoBehaviour
             mainCamera = Camera.main;
         }
 
+        if (Input.touchCount > 1 && HasActiveInteraction())
+        {
+            ForceClearInteractionState();
+            return;
+        }
+
         HandleMouseInput();
         TickAutoHint(Time.deltaTime);
+    }
+
+    public bool HasActiveInteraction()
+    {
+        return selectionMode != SelectionMode.None ||
+               isPointerHeld ||
+               isDragging ||
+               isAwaitingMatchChoice ||
+               activeTile != null;
     }
 
     private void TickAutoHint(float deltaTime)
@@ -212,6 +227,11 @@ public class BoardInteractionController : MonoBehaviour
 
     private void OnPointerDown()
     {
+        if (Input.touchCount > 1)
+        {
+            return;
+        }
+
         bool dismissedOverlay = false;
 
         if (uiManager != null && uiManager.IsModalOverlayVisible())

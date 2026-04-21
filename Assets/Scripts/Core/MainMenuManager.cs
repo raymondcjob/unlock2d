@@ -6,10 +6,65 @@ public class MainMenuManager : MonoBehaviour
     [Header("Scene Names")]
     [SerializeField] private string gameSceneName = "GameScene";
 
+    [Header("Buttons")]
+    [SerializeField] private UIButtonStateView continueButtonStateView;
+
+    [Header("Back Button")]
+    [SerializeField] private float backButtonDoubleTapWindowSeconds = 1.5f;
+
+    private float lastBackButtonTapTime = -999f;
+
+    private void Start()
+    {
+        RefreshContinueButton();
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            HandleBackButton();
+        }
+    }
+
+    private void OnApplicationFocus(bool hasFocus)
+    {
+        if (hasFocus)
+        {
+            RefreshContinueButton();
+        }
+    }
+
+    private void HandleBackButton()
+    {
+        if (Time.unscaledTime - lastBackButtonTapTime <= backButtonDoubleTapWindowSeconds)
+        {
+            OnClickQuit();
+            return;
+        }
+
+        lastBackButtonTapTime = Time.unscaledTime;
+        Debug.Log("Tap back again to quit.");
+    }
+
     public void OnClickContinue()
     {
-        Debug.Log("Continue button clicked.");
-        // Later: resume last session / load saved progress
+        if (!SaveGameManager.HasSavedGameFile())
+        {
+            Debug.Log("Continue ignored: no saved board found.");
+            return;
+        }
+
+        SaveGameManager.RequestLoadSavedGameOnNextGameScene();
+        SceneManager.LoadScene(gameSceneName);
+    }
+
+    private void RefreshContinueButton()
+    {
+        if (continueButtonStateView != null)
+        {
+            continueButtonStateView.SetAvailable(SaveGameManager.HasSavedGameFile());
+        }
     }
 
     public void OnClickPlay()

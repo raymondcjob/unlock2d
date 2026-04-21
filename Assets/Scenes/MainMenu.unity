@@ -268,6 +268,7 @@ GameObject:
   - component: {fileID: 99859593}
   - component: {fileID: 99859592}
   - component: {fileID: 99859591}
+  - component: {fileID: 99859594}
   m_Layer: 5
   m_Name: Continue
   m_TagString: Untagged
@@ -351,6 +352,22 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 1
+--- !u!114 &99859594
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 99859589}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d75f5f15b594edda22b1350f6de9b51, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  button: {fileID: 99859591}
+  includeChildGraphics: 1
+  disabledColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  targetGraphics: []
 --- !u!114 &99859592
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1720,6 +1737,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   gameSceneName: GameScene
+  continueButtonStateView: {fileID: 99859594}
+  backButtonDoubleTapWindowSeconds: 1.5
 --- !u!1 &1974283753
 GameObject:
   m_ObjectHideFlags: 0

@@ -1281,6 +1281,7 @@ GameObject:
   - component: {fileID: 408855609}
   - component: {fileID: 408855608}
   - component: {fileID: 408855607}
+  - component: {fileID: 408855610}
   m_Layer: 5
   m_Name: Undo
   m_TagString: Untagged
@@ -1364,6 +1365,22 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &408855610
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 408855605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d75f5f15b594edda22b1350f6de9b51, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  button: {fileID: 408855607}
+  includeChildGraphics: 0
+  disabledColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  targetGraphics: []
 --- !u!114 &408855608
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1880,6 +1897,7 @@ GameObject:
   - component: {fileID: 551646216}
   - component: {fileID: 551646215}
   - component: {fileID: 551646214}
+  - component: {fileID: 551646217}
   m_Layer: 5
   m_Name: Swap
   m_TagString: Untagged
@@ -1963,6 +1981,22 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &551646217
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 551646212}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d75f5f15b594edda22b1350f6de9b51, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  button: {fileID: 551646214}
+  includeChildGraphics: 0
+  disabledColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  targetGraphics: []
 --- !u!114 &551646215
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2619,6 +2653,7 @@ GameObject:
   - component: {fileID: 713252161}
   - component: {fileID: 713252160}
   - component: {fileID: 713252159}
+  - component: {fileID: 713252162}
   m_Layer: 5
   m_Name: Shuffle
   m_TagString: Untagged
@@ -2702,6 +2737,22 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &713252162
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 713252157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d75f5f15b594edda22b1350f6de9b51, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  button: {fileID: 713252159}
+  includeChildGraphics: 0
+  disabledColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  targetGraphics: []
 --- !u!114 &713252160
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3950,12 +4001,15 @@ MonoBehaviour:
   boardManager: {fileID: 2074807008}
   boardInteractionController: {fileID: 753556429}
   dragPreviewController: {fileID: 936484176}
-  debugSettings: {fileID: 1562327444}
+  itemInventory: {fileID: 1562327446}
   menuOverlayRoot: {fileID: 1153341302}
+  undoButtonStateView: {fileID: 408855610}
   undoBadgeRoot: {fileID: 2096522071}
   undoCountText: {fileID: 2143096409}
+  shuffleButtonStateView: {fileID: 713252162}
   shuffleBadgeRoot: {fileID: 491812834}
   shuffleCountText: {fileID: 1963955753}
+  swapButtonStateView: {fileID: 551646217}
   swapBadgeRoot: {fileID: 1252034321}
   swapCountText: {fileID: 491936158}
   noMovesOverlayRoot: {fileID: 533266663}
@@ -4461,6 +4515,8 @@ GameObject:
   - component: {fileID: 1562327443}
   - component: {fileID: 1562327444}
   - component: {fileID: 1562327445}
+  - component: {fileID: 1562327446}
+  - component: {fileID: 1562327447}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -4512,6 +4568,37 @@ MonoBehaviour:
   boardInteractionController: {fileID: 753556429}
   menuOverlayRoot: {fileID: 1153341302}
   debugBarRoot: {fileID: 1400191953}
+--- !u!114 &1562327446
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1562327442}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c9d5d8f4c8149ff9a60d542041266a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  debugSettings: {fileID: 1562327444}
+  startingUndoCount: 0
+  startingShuffleCount: 0
+  startingSwapCount: 0
+--- !u!114 &1562327447
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1562327442}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e4f6a0bb0b8494ba4c97d6ad5f2a5c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  boardManager: {fileID: 2074807008}
+  itemInventory: {fileID: 1562327446}
+  autosaveEnabled: 1
 --- !u!1 &1579207675
 GameObject:
   m_ObjectHideFlags: 0

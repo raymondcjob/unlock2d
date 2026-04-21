@@ -11,21 +11,21 @@ public class UIManager : MonoBehaviour
     [SerializeField] private BoardManager boardManager;
     [SerializeField] private BoardInteractionController boardInteractionController;
     [SerializeField] private DragPreviewController dragPreviewController;
-    [SerializeField] private DebugSettings debugSettings;
+    [SerializeField] private ItemInventory itemInventory;
 
     [Header("Menu Overlay")]
     [SerializeField] private GameObject menuOverlayRoot;
 
     [Header("Item Counts")]
+    [SerializeField] private UIButtonStateView undoButtonStateView;
     [SerializeField] private GameObject undoBadgeRoot;
     [SerializeField] private TMP_Text undoCountText;
-    private int undoUsesRemaining;
+    [SerializeField] private UIButtonStateView shuffleButtonStateView;
     [SerializeField] private GameObject shuffleBadgeRoot;
     [SerializeField] private TMP_Text shuffleCountText;
-    private int shuffleUsesRemaining;
+    [SerializeField] private UIButtonStateView swapButtonStateView;
     [SerializeField] private GameObject swapBadgeRoot;
     [SerializeField] private TMP_Text swapCountText;
-    private int swapUsesRemaining;
 
     [Header("No Moves Popup")]
     [SerializeField] private GameObject noMovesOverlayRoot;
@@ -33,6 +33,9 @@ public class UIManager : MonoBehaviour
     [Header("Win Popup")]
     [SerializeField] private GameObject winOverlayRoot;
 
+    private bool lastDebugMode;
+    private bool isShuffleAvailableForCurrentBoard;
+    private bool ignoreNextStableBoardStateChanged;
 
     private void OnEnable()
     {
@@ -41,6 +44,12 @@ public class UIManager : MonoBehaviour
             boardManager.OnBoardWon += HandleBoardWon;
             boardManager.OnBoardGenerated += HandleBoardGenerated;
             boardManager.OnSwapPerformed += HandleSwapPerformed;
+            boardManager.OnStableBoardStateChanged += HandleStableBoardStateChanged;
+        }
+
+        if (itemInventory != null)
+        {
+            itemInventory.OnInventoryChanged += HandleInventoryChanged;
         }
     }
 
@@ -51,6 +60,12 @@ public class UIManager : MonoBehaviour
             boardManager.OnBoardWon -= HandleBoardWon;
             boardManager.OnBoardGenerated -= HandleBoardGenerated;
             boardManager.OnSwapPerformed -= HandleSwapPerformed;
+            boardManager.OnStableBoardStateChanged -= HandleStableBoardStateChanged;
+        }
+
+        if (itemInventory != null)
+        {
+            itemInventory.OnInventoryChanged -= HandleInventoryChanged;
         }
     }
 
@@ -60,10 +75,24 @@ public class UIManager : MonoBehaviour
         SetWinOverlayVisible(false);
         SetNoMovesOverlayVisible(false);
 
-        ResetItemCountsForFreshBoard();
         RefreshUndoBadge();
         RefreshShuffleBadge();
         RefreshSwapBadge();
+        lastDebugMode = IsInventoryDebugModeEnabled();
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            HandleBackButton();
+        }
+
+        if (lastDebugMode != IsInventoryDebugModeEnabled())
+        {
+            lastDebugMode = IsInventoryDebugModeEnabled();
+            RefreshItemBadges();
+        }
     }
 
     public void OnClickOpenMenu()
@@ -75,6 +104,34 @@ public class UIManager : MonoBehaviour
     public void OnClickCloseMenu()
     {
         SetMenuOverlayVisible(false);
+    }
+
+    private void HandleBackButton()
+    {
+        if (IsMenuOverlayVisible())
+        {
+            OnClickCloseMenu();
+            return;
+        }
+
+        if (IsNoMovesOverlayVisible())
+        {
+            SetNoMovesOverlayVisible(false);
+            return;
+        }
+
+        if (IsWinOverlayVisible())
+        {
+            return;
+        }
+
+        if (boardInteractionController != null && boardInteractionController.HasActiveInteraction())
+        {
+            boardInteractionController.ForceClearInteractionState();
+            return;
+        }
+
+        OnClickOpenMenu();
     }
 
     public void OnClickMainMenu()
@@ -131,7 +188,7 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        if (!HasUndoUseAvailable())
+        if (!CanUseUndo())
         {
             Debug.Log("No undo uses remaining.");
             return;
@@ -143,28 +200,51 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        ConsumeUndoUse();
+        itemInventory.ConsumeUndoUse();
         RefreshUndoBadge();
     }
 
     private void HandleBoardGenerated()
     {
-        ResetItemCountsForFreshBoard();
-        RefreshUndoBadge();
-        RefreshShuffleBadge();
-        RefreshSwapBadge();
+        isShuffleAvailableForCurrentBoard = false;
+        ignoreNextStableBoardStateChanged = true;
+        itemInventory?.ResetForFreshBoard();
+        RefreshItemBadges();
+    }
+
+    private void HandleStableBoardStateChanged()
+    {
+        if (ignoreNextStableBoardStateChanged)
+        {
+            ignoreNextStableBoardStateChanged = false;
+            RefreshItemBadges();
+            return;
+        }
+
+        isShuffleAvailableForCurrentBoard = true;
+        RefreshItemBadges();
+    }
+
+    private void HandleInventoryChanged()
+    {
+        RefreshItemBadges();
     }
 
     private void RefreshUndoBadge()
     {
         if (undoCountText != null)
         {
-            undoCountText.text = IsDebugModeEnabled() ? "Free" : undoUsesRemaining.ToString();
+            undoCountText.text = itemInventory != null ? itemInventory.GetUndoDisplayText() : "0";
         }
 
         if (undoBadgeRoot != null)
         {
             undoBadgeRoot.SetActive(true);
+        }
+
+        if (undoButtonStateView != null)
+        {
+            undoButtonStateView.SetAvailable(CanUseUndo());
         }
     }
 
@@ -180,7 +260,7 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        if (!HasShuffleUseAvailable())
+        if (!CanUseShuffle())
         {
             Debug.Log("No shuffle uses remaining.");
             return;
@@ -192,7 +272,7 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        ConsumeShuffleUse();
+        itemInventory.ConsumeShuffleUse();
         RefreshShuffleBadge();
         RefreshUndoBadge();
     }
@@ -201,12 +281,17 @@ public class UIManager : MonoBehaviour
     {
         if (shuffleCountText != null)
         {
-            shuffleCountText.text = IsDebugModeEnabled() ? "Free" : shuffleUsesRemaining.ToString();
+            shuffleCountText.text = itemInventory != null ? itemInventory.GetShuffleDisplayText() : "0";
         }
 
         if (shuffleBadgeRoot != null)
         {
             shuffleBadgeRoot.SetActive(true);
+        }
+
+        if (shuffleButtonStateView != null)
+        {
+            shuffleButtonStateView.SetAvailable(CanUseShuffle());
         }
     }
 
@@ -214,7 +299,7 @@ public class UIManager : MonoBehaviour
     {
         SetMenuOverlayVisible(false);
 
-        if (!HasSwapUseAvailable())
+        if (itemInventory == null || !itemInventory.HasSwapUseAvailable())
         {
             Debug.Log("No swap uses remaining.");
             return;
@@ -230,19 +315,25 @@ public class UIManager : MonoBehaviour
     {
         if (swapCountText != null)
         {
-            swapCountText.text = IsDebugModeEnabled() ? "Free" : swapUsesRemaining.ToString();
+            swapCountText.text = itemInventory != null ? itemInventory.GetSwapDisplayText() : "0";
         }
 
         if (swapBadgeRoot != null)
         {
             swapBadgeRoot.SetActive(true);
         }
+
+        if (swapButtonStateView != null)
+        {
+            swapButtonStateView.SetAvailable(itemInventory != null && itemInventory.HasSwapUseAvailable());
+        }
     }
 
     private void HandleSwapPerformed()
     {
-        ConsumeSwapUse();
-        RefreshSwapBadge();
+        isShuffleAvailableForCurrentBoard = true;
+        itemInventory?.ConsumeSwapUse();
+        RefreshItemBadges();
     }
 
     public void OnClickSettings()
@@ -353,54 +444,32 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    private void ResetItemCountsForFreshBoard()
+    private void RefreshItemBadges()
     {
-        undoUsesRemaining = 0;
-        shuffleUsesRemaining = 0;
-        swapUsesRemaining = 0;
+        RefreshUndoBadge();
+        RefreshShuffleBadge();
+        RefreshSwapBadge();
     }
 
-    private bool HasUndoUseAvailable()
+    private bool CanUseUndo()
     {
-        return IsDebugModeEnabled() || undoUsesRemaining > 0;
+        return itemInventory != null &&
+               itemInventory.HasUndoUseAvailable() &&
+               boardManager != null &&
+               boardManager.GetUndoHistoryCount() > 0;
     }
 
-    private bool HasShuffleUseAvailable()
+    private bool CanUseShuffle()
     {
-        return IsDebugModeEnabled() || shuffleUsesRemaining > 0;
+        return itemInventory != null &&
+               itemInventory.HasShuffleUseAvailable() &&
+               isShuffleAvailableForCurrentBoard &&
+               boardManager != null &&
+               boardManager.HasFaceDownTiles();
     }
 
-    private bool HasSwapUseAvailable()
+    private bool IsInventoryDebugModeEnabled()
     {
-        return IsDebugModeEnabled() || swapUsesRemaining > 0;
-    }
-
-    private void ConsumeUndoUse()
-    {
-        if (!IsDebugModeEnabled() && undoUsesRemaining > 0)
-        {
-            undoUsesRemaining--;
-        }
-    }
-
-    private void ConsumeShuffleUse()
-    {
-        if (!IsDebugModeEnabled() && shuffleUsesRemaining > 0)
-        {
-            shuffleUsesRemaining--;
-        }
-    }
-
-    private void ConsumeSwapUse()
-    {
-        if (!IsDebugModeEnabled() && swapUsesRemaining > 0)
-        {
-            swapUsesRemaining--;
-        }
-    }
-
-    private bool IsDebugModeEnabled()
-    {
-        return debugSettings != null && debugSettings.DebugMode;
+        return itemInventory != null && itemInventory.IsDebugModeEnabled();
     }
 }
