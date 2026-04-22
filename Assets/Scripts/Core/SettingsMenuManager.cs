@@ -11,6 +11,7 @@ public class SettingsMenuManager : MonoBehaviour
     [SerializeField] private string mainMenuSceneName = "MainMenu";
 
     [Header("Panels")]
+    [SerializeField] private Transform settingsOverlaysRoot;
     [SerializeField] private GameObject mainSettingsPanel;
     [SerializeField] private GameObject languageSelectionPanel;
 
@@ -20,6 +21,9 @@ public class SettingsMenuManager : MonoBehaviour
     [SerializeField] private Button themesButton;
     [SerializeField] private Button languagesButton;
     [SerializeField] private Button backButton;
+    [SerializeField] private Button englishButton;
+    [SerializeField] private Button traditionalChineseButton;
+    [SerializeField] private Button simplifiedChineseButton;
 
     [Header("Button Images")]
     [SerializeField] private Image musicButtonImage;
@@ -35,6 +39,8 @@ public class SettingsMenuManager : MonoBehaviour
 
     private void Awake()
     {
+        ShowOnlyMainSettingsPanel();
+
         if (musicButtonImage != null)
         {
             musicOriginalColor = musicButtonImage.color;
@@ -93,8 +99,29 @@ public class SettingsMenuManager : MonoBehaviour
         Debug.Log("Languages button clicked. Language selection panel will be connected later.");
     }
 
+    public void OnClickEnglish()
+    {
+        SelectLanguage("en");
+    }
+
+    public void OnClickTraditionalChinese()
+    {
+        SelectLanguage("zh-hk");
+    }
+
+    public void OnClickSimplifiedChinese()
+    {
+        SelectLanguage("zh-cn");
+    }
+
     public void OnClickBack()
     {
+        if (languageSelectionPanel != null && languageSelectionPanel.activeSelf)
+        {
+            ShowMainSettingsPanel();
+            return;
+        }
+
         SceneManager.LoadScene(mainMenuSceneName);
     }
 
@@ -124,6 +151,21 @@ public class SettingsMenuManager : MonoBehaviour
         {
             backButton.onClick.AddListener(OnClickBack);
         }
+
+        if (englishButton != null)
+        {
+            englishButton.onClick.AddListener(OnClickEnglish);
+        }
+
+        if (traditionalChineseButton != null)
+        {
+            traditionalChineseButton.onClick.AddListener(OnClickTraditionalChinese);
+        }
+
+        if (simplifiedChineseButton != null)
+        {
+            simplifiedChineseButton.onClick.AddListener(OnClickSimplifiedChinese);
+        }
     }
 
     private void RefreshAudioButtonVisuals()
@@ -136,6 +178,38 @@ public class SettingsMenuManager : MonoBehaviour
         if (soundButtonImage != null)
         {
             soundButtonImage.color = soundMuted ? mutedColor : soundOriginalColor;
+        }
+    }
+
+    private void SelectLanguage(string languageCode)
+    {
+        LocalizationManager.SetLanguage(languageCode);
+        ShowMainSettingsPanel();
+        Debug.Log($"Selected language: {languageCode}");
+    }
+
+    private void ShowMainSettingsPanel()
+    {
+        ShowOnlyMainSettingsPanel();
+    }
+
+    private void ShowOnlyMainSettingsPanel()
+    {
+        Transform root = settingsOverlaysRoot != null ? settingsOverlaysRoot : transform;
+
+        foreach (Transform child in root)
+        {
+            child.gameObject.SetActive(mainSettingsPanel != null && child.gameObject == mainSettingsPanel);
+        }
+
+        if (mainSettingsPanel != null)
+        {
+            mainSettingsPanel.SetActive(true);
+        }
+
+        if (languageSelectionPanel != null)
+        {
+            languageSelectionPanel.SetActive(false);
         }
     }
 }

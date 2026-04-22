@@ -1,0 +1,105 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+public static class LocalizationManager
+{
+    public const string LanguageKey = "settings.language";
+    public const string DefaultLanguageCode = "en";
+
+    private static readonly Dictionary<string, Dictionary<string, string>> Translations =
+        new Dictionary<string, Dictionary<string, string>>
+        {
+            {
+                "en",
+                new Dictionary<string, string>
+                {
+                    { "game.title", "Unlock / Lockpick" },
+                    { "main.continue", "Continue" },
+                    { "main.newGame", "New Game" },
+                    { "main.settings", "Settings" },
+                    { "main.howToPlay", "How To Play" },
+                    { "main.quit", "Quit Game" },
+                    { "settings.title", "Settings" },
+                    { "settings.themes", "Theme" },
+                    { "settings.languages", "Languages" },
+                    { "settings.languageTitle", "Languages" },
+                    { "settings.back", "Return / Close" }
+                }
+            },
+            {
+                "zh-hk",
+                new Dictionary<string, string>
+                {
+                    { "game.title", "解鎖" },
+                    { "main.continue", "繼續" },
+                    { "main.newGame", "新遊戲" },
+                    { "main.settings", "設定" },
+                    { "main.howToPlay", "玩法" },
+                    { "main.quit", "離開遊戲" },
+                    { "settings.title", "設定" },
+                    { "settings.themes", "主題" },
+                    { "settings.languages", "語言" },
+                    { "settings.languageTitle", "語言" },
+                    { "settings.back", "返回" }
+                }
+            },
+            {
+                "zh-cn",
+                new Dictionary<string, string>
+                {
+                    { "game.title", "解锁" },
+                    { "main.continue", "继续" },
+                    { "main.newGame", "新游戏" },
+                    { "main.settings", "设置" },
+                    { "main.howToPlay", "玩法" },
+                    { "main.quit", "退出游戏" },
+                    { "settings.title", "设置" },
+                    { "settings.themes", "主题" },
+                    { "settings.languages", "语言" },
+                    { "settings.languageTitle", "语言" },
+                    { "settings.back", "返回" }
+                }
+            }
+        };
+
+    public static event Action OnLanguageChanged;
+
+    public static string CurrentLanguageCode =>
+        PlayerPrefs.GetString(LanguageKey, DefaultLanguageCode);
+
+    public static void SetLanguage(string languageCode)
+    {
+        if (string.IsNullOrEmpty(languageCode) || !Translations.ContainsKey(languageCode))
+        {
+            languageCode = DefaultLanguageCode;
+        }
+
+        PlayerPrefs.SetString(LanguageKey, languageCode);
+        PlayerPrefs.Save();
+        OnLanguageChanged?.Invoke();
+    }
+
+    public static string GetText(string key)
+    {
+        if (string.IsNullOrEmpty(key))
+        {
+            return string.Empty;
+        }
+
+        string languageCode = CurrentLanguageCode;
+
+        if (Translations.TryGetValue(languageCode, out Dictionary<string, string> languageTexts) &&
+            languageTexts.TryGetValue(key, out string translatedText))
+        {
+            return translatedText;
+        }
+
+        if (Translations[DefaultLanguageCode].TryGetValue(key, out string defaultText))
+        {
+            return defaultText;
+        }
+
+        return key;
+    }
+}
