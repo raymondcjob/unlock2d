@@ -4,14 +4,30 @@ using UnityEngine;
 
 public class BoardManager : MonoBehaviour
 {
+    private static int nextNewGameBoardWidth = 17;
+    private static int nextNewGameBoardHeight = 8;
+
+    private enum BoardSizePreset
+    {
+        Large17x8,
+        Medium14x8,
+        Small12x6
+    }
+
     [Header("Board Settings")]
     [SerializeField] private int boardWidth = 17;
     [SerializeField] private int boardHeight = 8;
+    [SerializeField] private BoardSizePreset currentBoardSizePreset = BoardSizePreset.Large17x8;
 
     [Header("Base Layout Tuning")]
     [SerializeField] private float baseTileScale = 0.2f;
-    [SerializeField] private float baseTileSpacingX = 0.64f;
-    [SerializeField] private float baseTileSpacingY = 0.86f;
+    [SerializeField] private float TileSpacing8X = 0.64f;
+    [SerializeField] private float TileSpacing8Y = 0.86f;
+    [SerializeField] private int referenceBoardHeight = 8;
+
+    [Header("12x6 Layout Tuning")]
+    [SerializeField] private float TileSpacing6X = 0.85333335f;
+    [SerializeField] private float TileSpacing6Y = 1.1466666f;
     private float tileSpacingX;
     private float tileSpacingY;
 
@@ -94,6 +110,8 @@ public class BoardManager : MonoBehaviour
 
     private void Start()
     {
+        ApplyPendingNewGameBoardSize();
+
         if (SaveGameManager.ShouldSkipBoardAutoGenerateOnSceneStart())
         {
             return;
@@ -111,9 +129,16 @@ public class BoardManager : MonoBehaviour
 
     public void GenerateNewBoard()
     {
+        ApplyBoardSizePreset(currentBoardSizePreset);
         int newSeed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
         GenerateBoardFromSeed(newSeed);
         OnNewRandomBoardGenerated?.Invoke();
+    }
+
+    public static void SetNextNewGameBoardSize(int width, int height)
+    {
+        nextNewGameBoardWidth = width;
+        nextNewGameBoardHeight = height;
     }
 
     public void ReplayCurrentBoard()
@@ -130,6 +155,7 @@ public class BoardManager : MonoBehaviour
 
     public void GenerateBoardFromSeed(int seed)
     {
+        ApplyBoardSizePreset(currentBoardSizePreset);
         hasGeneratedBoard = true;
         currentSeed = FindNextValidSeed(seed);
         GenerateBoard();
@@ -146,7 +172,7 @@ public class BoardManager : MonoBehaviour
         for (int attempt = 0; attempt < maxSeedValidationAttempts; attempt++)
         {
             System.Random seededRandom = new System.Random(candidateSeed);
-            List<TileEntry> shuffledTiles = BuildShuffledTileList(seededRandom);
+            List<TileEntry> shuffledTiles = BuildShuffledTileList(seededRandom, candidateSeed);
             int[,] layout = BuildTileTypeGrid(shuffledTiles);
 
             if (!BoardMoveAnalyzer.ShouldRegenerateInitialLayout(layout))
@@ -338,7 +364,8 @@ public class BoardManager : MonoBehaviour
         CalculateSpacingFromPrefabScale();
 
         int totalCells = boardWidth * boardHeight;
-        int requiredTileCount = tileSprites.Length * 4;
+        int[] activeTileSpriteIds = GetActiveTileSpriteIds(currentSeed);
+        int requiredTileCount = activeTileSpriteIds.Length * 4;
 
         if (tileSprites == null || tileSprites.Length != 34)
         {
@@ -348,12 +375,12 @@ public class BoardManager : MonoBehaviour
 
         if (requiredTileCount != totalCells)
         {
-            Debug.LogError($"Tile count mismatch. Board needs {totalCells} tiles, but 34 x 4 = {requiredTileCount}.");
+            Debug.LogError($"Tile count mismatch. Board needs {totalCells} tiles, but the selected sprite pool creates {requiredTileCount} tiles.");
             return;
         }
 
         System.Random seededRandom = new System.Random(currentSeed);
-        List<TileEntry> shuffledTiles = BuildShuffledTileList(seededRandom);
+        List<TileEntry> shuffledTiles = BuildShuffledTileList(seededRandom, currentSeed);
         remainingFaceUpTiles = shuffledTiles.Count;
         boardTiles = new TileView[boardWidth, boardHeight];
 
@@ -367,6 +394,7 @@ public class BoardManager : MonoBehaviour
                 Vector2 spawnPosition = GetWorldPosition(x, y);
 
                 TileView spawnedTile = Instantiate(tilePrefab, spawnPosition, Quaternion.identity, tileContainer);
+                ApplyTileScale(spawnedTile);
                 spawnedTile.name = $"Tile_{x}_{y}_{entry.TileTypeId}";
                 spawnedTile.Initialize(entry.Sprite, entry.TileTypeId, new Vector2Int(x, y));
 
@@ -415,15 +443,15 @@ public class BoardManager : MonoBehaviour
             return false;
         }
 
-        if (saveData.BoardWidth != boardWidth || saveData.BoardHeight != boardHeight)
-        {
-            Debug.LogWarning("RestoreFromSaveData failed: save board size does not match this board.");
-            return false;
-        }
-
         if (tileSprites == null || tileSprites.Length != 34)
         {
             Debug.LogError("RestoreFromSaveData failed: BoardManager needs exactly 34 tile sprites.");
+            return false;
+        }
+
+        if (!TryApplyBoardSizePreset(saveData.BoardWidth, saveData.BoardHeight))
+        {
+            Debug.LogWarning($"RestoreFromSaveData failed: unsupported saved board size {saveData.BoardWidth}x{saveData.BoardHeight}.");
             return false;
         }
 
@@ -451,6 +479,7 @@ public class BoardManager : MonoBehaviour
 
             Vector2Int gridPosition = new Vector2Int(tileState.X, tileState.Y);
             TileView spawnedTile = Instantiate(tilePrefab, GetWorldPosition(gridPosition), Quaternion.identity, tileContainer);
+            ApplyTileScale(spawnedTile);
             spawnedTile.name = $"Tile_{tileState.X}_{tileState.Y}_{tileState.TileTypeId}";
             spawnedTile.Initialize(tileSprites[tileState.TileTypeId], tileState.TileTypeId, gridPosition);
 
@@ -872,15 +901,17 @@ public class BoardManager : MonoBehaviour
         return backTileSprite;
     }
 
-    private List<TileEntry> BuildShuffledTileList(System.Random seededRandom)
+    private List<TileEntry> BuildShuffledTileList(System.Random seededRandom, int boardSeed)
     {
         List<TileEntry> tilePool = new List<TileEntry>();
+        int[] activeTileSpriteIds = GetActiveTileSpriteIds(boardSeed);
 
-        for (int i = 0; i < tileSprites.Length; i++)
+        for (int i = 0; i < activeTileSpriteIds.Length; i++)
         {
             for (int copy = 0; copy < 4; copy++)
             {
-                tilePool.Add(new TileEntry(tileSprites[i], i));
+                int tileSpriteId = activeTileSpriteIds[i];
+                tilePool.Add(new TileEntry(tileSprites[tileSpriteId], tileSpriteId));
             }
         }
 
@@ -928,24 +959,181 @@ public class BoardManager : MonoBehaviour
 
     private void CalculateSpacingFromPrefabScale()
     {
-        float currentScaleX = tilePrefab.transform.localScale.x;
-        float currentScaleY = tilePrefab.transform.localScale.y;
-
         if (Mathf.Approximately(baseTileScale, 0f))
         {
             Debug.LogError("Base tile scale cannot be 0.");
-            tileSpacingX = baseTileSpacingX;
-            tileSpacingY = baseTileSpacingY;
+            tileSpacingX = TileSpacing8X;
+            tileSpacingY = TileSpacing8Y;
             return;
         }
 
+        float currentScaleX = tilePrefab.transform.localScale.x;
+        float currentScaleY = tilePrefab.transform.localScale.y;
         float scaleRatioX = currentScaleX / baseTileScale;
         float scaleRatioY = currentScaleY / baseTileScale;
 
-        tileSpacingX = baseTileSpacingX * scaleRatioX;
-        tileSpacingY = baseTileSpacingY * scaleRatioY;
+        float spacingBaseX = TileSpacing8X;
+        float spacingBaseY = TileSpacing8Y;
 
-        Debug.Log($"Prefab scale: ({currentScaleX}, {currentScaleY}), spacing: ({tileSpacingX}, {tileSpacingY})");
+        if (currentBoardSizePreset == BoardSizePreset.Small12x6)
+        {
+            spacingBaseX = TileSpacing6X;
+            spacingBaseY = TileSpacing6Y;
+        }
+
+        tileSpacingX = spacingBaseX * scaleRatioX;
+        tileSpacingY = spacingBaseY * scaleRatioY;
+
+        Debug.Log($"Board size: {boardWidth}x{boardHeight}, prefab scale: ({currentScaleX}, {currentScaleY}), spacing: ({tileSpacingX}, {tileSpacingY})");
+    }
+
+    private void SelectRandomBoardSizePreset()
+    {
+        Array presets = Enum.GetValues(typeof(BoardSizePreset));
+        currentBoardSizePreset = (BoardSizePreset)presets.GetValue(UnityEngine.Random.Range(0, presets.Length));
+        ApplyBoardSizePreset(currentBoardSizePreset);
+    }
+
+    private void ApplyBoardSizePreset(BoardSizePreset preset)
+    {
+        currentBoardSizePreset = preset;
+
+        switch (preset)
+        {
+            case BoardSizePreset.Small12x6:
+                boardWidth = 12;
+                boardHeight = 6;
+                break;
+            case BoardSizePreset.Medium14x8:
+                boardWidth = 14;
+                boardHeight = 8;
+                break;
+            case BoardSizePreset.Large17x8:
+            default:
+                boardWidth = 17;
+                boardHeight = 8;
+                break;
+        }
+    }
+
+    private bool TryApplyBoardSizePreset(int width, int height)
+    {
+        if (width == 12 && height == 6)
+        {
+            ApplyBoardSizePreset(BoardSizePreset.Small12x6);
+            return true;
+        }
+
+        if (width == 14 && height == 8)
+        {
+            ApplyBoardSizePreset(BoardSizePreset.Medium14x8);
+            return true;
+        }
+
+        if (width == 17 && height == 8)
+        {
+            ApplyBoardSizePreset(BoardSizePreset.Large17x8);
+            return true;
+        }
+
+        return false;
+    }
+
+    private void ApplyPendingNewGameBoardSize()
+    {
+        if (!TryApplyBoardSizePreset(nextNewGameBoardWidth, nextNewGameBoardHeight))
+        {
+            ApplyBoardSizePreset(BoardSizePreset.Large17x8);
+        }
+    }
+
+    private int[] GetActiveTileSpriteIds(int boardSeed)
+    {
+        switch (currentBoardSizePreset)
+        {
+            case BoardSizePreset.Small12x6:
+                return BuildSmallBoardTileSpriteIds(boardSeed);
+            case BoardSizePreset.Medium14x8:
+                return BuildActiveTileSpriteIdArray(0, 26, 31);
+            case BoardSizePreset.Large17x8:
+            default:
+                return BuildActiveTileSpriteIdArray(0, 33);
+        }
+    }
+
+    private int[] BuildSmallBoardTileSpriteIds(int boardSeed)
+    {
+        int[][] suitSets =
+        {
+            BuildActiveTileSpriteIdArray(0, 8),
+            BuildActiveTileSpriteIdArray(9, 17),
+            BuildActiveTileSpriteIdArray(18, 26)
+        };
+
+        int[][] suitSetPairs =
+        {
+            new[] { 0, 1 },
+            new[] { 0, 2 },
+            new[] { 1, 2 }
+        };
+
+        int pairIndex = Mathf.Abs(boardSeed % suitSetPairs.Length);
+        int[] selectedPair = suitSetPairs[pairIndex];
+        int[] activeSpriteIds = new int[18];
+
+        for (int i = 0; i < 9; i++)
+        {
+            activeSpriteIds[i] = suitSets[selectedPair[0]][i];
+            activeSpriteIds[i + 9] = suitSets[selectedPair[1]][i];
+        }
+
+        return activeSpriteIds;
+    }
+
+    private int[] BuildActiveTileSpriteIdArray(int startInclusive, int endInclusive)
+    {
+        int length = endInclusive - startInclusive + 1;
+        int[] activeSpriteIds = new int[length];
+
+        for (int i = 0; i < length; i++)
+        {
+            activeSpriteIds[i] = startInclusive + i;
+        }
+
+        return activeSpriteIds;
+    }
+
+    private int[] BuildActiveTileSpriteIdArray(int startInclusive, int endInclusive, int extraSpriteIndex)
+    {
+        int baseLength = endInclusive - startInclusive + 1;
+        int[] activeSpriteIds = new int[baseLength + 1];
+
+        for (int i = 0; i < baseLength; i++)
+        {
+            activeSpriteIds[i] = startInclusive + i;
+        }
+
+        activeSpriteIds[baseLength] = extraSpriteIndex;
+        return activeSpriteIds;
+    }
+
+    private float GetCurrentTileScaleMultiplier()
+    {
+        int safeReferenceHeight = Mathf.Max(1, referenceBoardHeight);
+        int safeBoardHeight = Mathf.Max(1, boardHeight);
+        return (float)safeReferenceHeight / safeBoardHeight;
+    }
+
+    private void ApplyTileScale(TileView tile)
+    {
+        if (tile == null || tilePrefab == null)
+        {
+            return;
+        }
+
+        float scaleMultiplier = GetCurrentTileScaleMultiplier();
+        Vector3 scaledTileSize = tilePrefab.transform.localScale * scaleMultiplier;
+        tile.SetBaseScale(scaledTileSize);
     }
 
     private struct TileEntry
@@ -1058,7 +1246,7 @@ public class BoardManager : MonoBehaviour
         {
             int seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
             System.Random seededRandom = new System.Random(seed);
-            List<TileEntry> shuffledTiles = BuildShuffledTileList(seededRandom);
+            List<TileEntry> shuffledTiles = BuildShuffledTileList(seededRandom, seed);
 
             if (CountAdjacentOpeningMatches(shuffledTiles) == 1)
             {

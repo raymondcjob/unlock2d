@@ -86,6 +86,12 @@ public class TileView : MonoBehaviour
         }
     }
 
+    public void SetBaseScale(Vector3 baseScale)
+    {
+        originalScale = baseScale;
+        transform.localScale = baseScale;
+    }
+
     public void SetDragSourceTint(bool tinted)
     {
         if (spriteRenderer == null)

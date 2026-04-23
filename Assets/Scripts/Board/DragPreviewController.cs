@@ -36,6 +36,7 @@ public class DragPreviewController : MonoBehaviour
             TileView clone = Instantiate(clonePrefab, previewWorldPosition, Quaternion.identity, previewContainer);
             clone.name = $"Preview_{sourceTile.name}";
             clone.Initialize(sourceTile.FaceUpSprite, sourceTile.TileTypeId, sourceTile.GridPosition);
+            clone.SetBaseScale(sourceTile.transform.localScale);
 
             ApplyCloneVisual(clone);
             activeClones.Add(clone);
