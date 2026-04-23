@@ -13,6 +13,7 @@ public class SaveGameManager : MonoBehaviour
     [Header("References")]
     [SerializeField] private BoardManager boardManager;
     [SerializeField] private ItemInventory itemInventory;
+    [SerializeField] private UIManager uiManager;
 
     [Header("Autosave")]
     [SerializeField] private bool autosaveEnabled = true;
@@ -28,6 +29,8 @@ public class SaveGameManager : MonoBehaviour
         public string SavedAtUtc;
         public BoardManager.SaveData Board;
         public ItemInventory.SaveData Inventory;
+        public float ElapsedSeconds;
+        public bool IsTimerRunning;
     }
 
     private string SavePath => Path.Combine(Application.persistentDataPath, SaveFileName);
@@ -124,11 +127,18 @@ public class SaveGameManager : MonoBehaviour
             Version = SaveVersion,
             SavedAtUtc = DateTime.UtcNow.ToString("o"),
             Board = boardManager.CaptureSaveData(),
-            Inventory = itemInventory.CaptureSaveData()
+            Inventory = itemInventory.CaptureSaveData(),
+            ElapsedSeconds = uiManager != null ? uiManager.GetElapsedSeconds() : 0f,
+            IsTimerRunning = uiManager != null && uiManager.IsTimerRunning()
         };
 
         string json = JsonUtility.ToJson(saveData, true);
         File.WriteAllText(SavePath, json);
+    }
+
+    public void SaveGameIfAllowed()
+    {
+        Autosave();
     }
 
     public bool TryLoadGame()
@@ -164,6 +174,7 @@ public class SaveGameManager : MonoBehaviour
             }
 
             itemInventory.RestoreFromSaveData(saveData.Inventory);
+            uiManager?.RestoreTimerState(saveData.ElapsedSeconds, true);
             hasBoardProgress = true;
             isLoadingGame = false;
             return true;

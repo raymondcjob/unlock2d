@@ -14,13 +14,13 @@ public static class LocalizationManager
                 "en",
                 new Dictionary<string, string>
                 {
-                    { "game.title", "Unlock / Lockpick" },
+                    { "game.title", "Lockpick" },
                     { "main.continue", "Continue" },
                     { "main.newGame", "New Game" },
                     { "main.settings", "Settings" },
                     { "main.howToPlay", "How To Play" },
                     { "main.quit", "Quit Game" },
-                    { "gameMenu.title", "Menu" },
+                    { "gameMenu.title", "Game Paused" },
                     { "gameMenu.resume", "Resume" },
                     { "gameMenu.restart", "Restart" },
                     { "gameMenu.mainMenu", "Main Menu" },
@@ -35,13 +35,13 @@ public static class LocalizationManager
                 "zh-hk",
                 new Dictionary<string, string>
                 {
-                    { "game.title", "解鎖" },
+                    { "game.title", "開鎖" },
                     { "main.continue", "繼續" },
                     { "main.newGame", "新遊戲" },
                     { "main.settings", "設定" },
                     { "main.howToPlay", "玩法" },
                     { "main.quit", "離開遊戲" },
-                    { "gameMenu.title", "選單" },
+                    { "gameMenu.title", "遊戲暫停" },
                     { "gameMenu.resume", "繼續" },
                     { "gameMenu.restart", "重新開始" },
                     { "gameMenu.mainMenu", "主選單" },
@@ -56,13 +56,13 @@ public static class LocalizationManager
                 "zh-cn",
                 new Dictionary<string, string>
                 {
-                    { "game.title", "解锁" },
+                    { "game.title", "开锁" },
                     { "main.continue", "继续" },
                     { "main.newGame", "新游戏" },
                     { "main.settings", "设置" },
                     { "main.howToPlay", "玩法" },
                     { "main.quit", "退出游戏" },
-                    { "gameMenu.title", "菜单" },
+                    { "gameMenu.title", "游戏暂停" },
                     { "gameMenu.resume", "继续" },
                     { "gameMenu.restart", "重新开始" },
                     { "gameMenu.mainMenu", "主菜单" },

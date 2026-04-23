@@ -53,6 +53,18 @@ public class DebugActions : MonoBehaviour
         }
     }
 
+    public void OnClickDisableDebugMode()
+    {
+        DebugSettings.SetPersistentDebugMode(false);
+
+        if (boardInteractionController != null)
+        {
+            boardInteractionController.CancelSelectionMode();
+        }
+
+        RefreshDebugUi();
+    }
+
     private bool IsDebugModeEnabled()
     {
         return debugSettings != null && debugSettings.DebugMode;

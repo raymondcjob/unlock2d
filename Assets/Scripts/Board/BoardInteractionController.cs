@@ -429,11 +429,21 @@ public class BoardInteractionController : MonoBehaviour
 
         if (selectionMode == SelectionMode.Swap)
         {
-            boardManager.SwapTiles(selectedTileA, selectedTileB);
+            boardManager.RecordUndoSnapshot();
+
+            if (!boardManager.SwapTiles(selectedTileA, selectedTileB))
+            {
+                boardManager.DiscardLastUndoSnapshot();
+            }
         }
         else if (selectionMode == SelectionMode.Match)
         {
-            boardManager.DebugMatchTiles(selectedTileA, selectedTileB);
+            boardManager.RecordUndoSnapshot();
+
+            if (!boardManager.DebugMatchTiles(selectedTileA, selectedTileB))
+            {
+                boardManager.DiscardLastUndoSnapshot();
+            }
         }
 
         CancelSelectionMode();

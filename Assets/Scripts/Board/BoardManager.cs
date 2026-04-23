@@ -35,6 +35,7 @@ public class BoardManager : MonoBehaviour
     [Header("References")]
     [SerializeField] private TileView tilePrefab;
     [SerializeField] private Transform tileContainer;
+    [SerializeField] private ItemInventory itemInventory;
 
     [Header("Tile Sprites")]
     [SerializeField] private Sprite[] tileSprites;
@@ -55,6 +56,7 @@ public class BoardManager : MonoBehaviour
     {
         public int RemainingFaceUpTiles;
         public TileState[] TileStates;
+        public ItemInventory.SaveData InventoryState;
     }
 
     private struct TileState
@@ -222,7 +224,8 @@ public class BoardManager : MonoBehaviour
         BoardSnapshot snapshot = new BoardSnapshot
         {
             RemainingFaceUpTiles = remainingFaceUpTiles,
-            TileStates = new TileState[spawnedTiles.Count]
+            TileStates = new TileState[spawnedTiles.Count],
+            InventoryState = itemInventory != null ? itemInventory.CaptureSaveData() : null
         };
 
         for (int i = 0; i < spawnedTiles.Count; i++)
@@ -289,6 +292,11 @@ public class BoardManager : MonoBehaviour
 
         boardTiles = new TileView[boardWidth, boardHeight];
         remainingFaceUpTiles = snapshot.RemainingFaceUpTiles;
+
+        if (itemInventory != null && snapshot.InventoryState != null)
+        {
+            itemInventory.RestoreFromSaveData(snapshot.InventoryState);
+        }
 
         for (int i = 0; i < spawnedTiles.Count; i++)
         {
@@ -751,7 +759,6 @@ public class BoardManager : MonoBehaviour
 
             if (BoardMoveAnalyzer.HasAnyAvailableMove(this))
             {
-                ClearUndoHistory();
                 OnStableBoardStateChanged?.Invoke();
                 return true;
             }

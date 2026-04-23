@@ -3,6 +3,8 @@ using UnityEngine.SceneManagement;
 
 public class MainMenuManager : MonoBehaviour
 {
+    private const int DebugUnlockContinueTapThreshold = 5;
+
     [Header("Scene Names")]
     [SerializeField] private string gameSceneName = "GameScene";
     [SerializeField] private string settingsSceneName = "Settings";
@@ -14,6 +16,8 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private float backButtonDoubleTapWindowSeconds = 1.5f;
 
     private float lastBackButtonTapTime = -999f;
+    private int disabledContinueTapCount;
+    private bool isDebugUnlockArmed;
 
     private void Start()
     {
@@ -36,6 +40,11 @@ public class MainMenuManager : MonoBehaviour
         }
     }
 
+    private void OnApplicationQuit()
+    {
+        DebugSettings.SetPersistentDebugMode(false);
+    }
+
     private void HandleBackButton()
     {
         if (Time.unscaledTime - lastBackButtonTapTime <= backButtonDoubleTapWindowSeconds)
@@ -50,6 +59,8 @@ public class MainMenuManager : MonoBehaviour
 
     public void OnClickContinue()
     {
+        ResetDebugUnlockSequence();
+
         if (!SaveGameManager.HasSavedGameFile())
         {
             Debug.Log("Continue ignored: no saved board found.");
@@ -70,22 +81,35 @@ public class MainMenuManager : MonoBehaviour
 
     public void OnClickPlay()
     {
+        ResetDebugUnlockSequence();
         SceneManager.LoadScene(gameSceneName);
     }
 
     public void OnClickSettings()
     {
+        ResetDebugUnlockSequence();
         SceneManager.LoadScene(settingsSceneName);
     }
 
     public void OnClickHowToPlay()
     {
+        ResetDebugUnlockSequence();
         Debug.Log("How To Play button clicked.");
         // Later: open tutorial / instructions panel
     }
 
     public void OnClickQuit()
     {
+        if (isDebugUnlockArmed && !SaveGameManager.HasSavedGameFile())
+        {
+            DebugSettings.SetPersistentDebugMode(true);
+            ResetDebugUnlockSequence();
+            Debug.Log("Secret unlock activated. Debug mode enabled.");
+            return;
+        }
+
+        ResetDebugUnlockSequence();
+        DebugSettings.SetPersistentDebugMode(false);
         Debug.Log("Quit button clicked.");
 
         #if UNITY_EDITOR
@@ -93,5 +117,28 @@ public class MainMenuManager : MonoBehaviour
         #else
         Application.Quit();
         #endif
+    }
+
+    public void OnDisabledContinueTapped()
+    {
+        if (SaveGameManager.HasSavedGameFile())
+        {
+            ResetDebugUnlockSequence();
+            return;
+        }
+
+        disabledContinueTapCount++;
+
+        if (disabledContinueTapCount >= DebugUnlockContinueTapThreshold)
+        {
+            isDebugUnlockArmed = true;
+            Debug.Log("Secret continue tap sequence armed.");
+        }
+    }
+
+    private void ResetDebugUnlockSequence()
+    {
+        disabledContinueTapCount = 0;
+        isDebugUnlockArmed = false;
     }
 }

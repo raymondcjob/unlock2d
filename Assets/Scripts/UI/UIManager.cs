@@ -12,6 +12,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private BoardInteractionController boardInteractionController;
     [SerializeField] private DragPreviewController dragPreviewController;
     [SerializeField] private ItemInventory itemInventory;
+    [SerializeField] private SaveGameManager saveGameManager;
 
     [Header("Menu Overlay")]
     [SerializeField] private GameObject menuOverlayRoot;
@@ -33,9 +34,15 @@ public class UIManager : MonoBehaviour
     [Header("Win Popup")]
     [SerializeField] private GameObject winOverlayRoot;
 
+    [Header("Top Bar")]
+    [SerializeField] private TMP_Text timerText;
+
     private bool lastDebugMode;
     private bool isShuffleAvailableForCurrentBoard;
     private bool ignoreNextStableBoardStateChanged;
+    private float elapsedSeconds;
+    private int lastDisplayedSecond = -1;
+    private bool isTimerRunning;
 
     private void OnEnable()
     {
@@ -79,10 +86,13 @@ public class UIManager : MonoBehaviour
         RefreshShuffleBadge();
         RefreshSwapBadge();
         lastDebugMode = IsInventoryDebugModeEnabled();
+        RestartTimer();
     }
 
     private void Update()
     {
+        UpdateTimer();
+
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             HandleBackButton();
@@ -98,12 +108,15 @@ public class UIManager : MonoBehaviour
     public void OnClickOpenMenu()
     {
         ClearBoardInteraction();
+        PauseTimer();
         SetMenuOverlayVisible(true);
+        saveGameManager?.SaveGameIfAllowed();
     }
 
     public void OnClickCloseMenu()
     {
         SetMenuOverlayVisible(false);
+        ResumeTimer();
     }
 
     private void HandleBackButton()
@@ -136,6 +149,7 @@ public class UIManager : MonoBehaviour
 
     public void OnClickMainMenu()
     {
+        saveGameManager?.SaveGameIfAllowed();
         SetMenuOverlayVisible(false);
         SetWinOverlayVisible(false);
         SetNoMovesOverlayVisible(false);
@@ -172,6 +186,7 @@ public class UIManager : MonoBehaviour
 
     public void OnClickStore()
     {
+        saveGameManager?.SaveGameIfAllowed();
         Debug.Log("Store button clicked.");
         // Later: open store overlay / panel
     }
@@ -199,9 +214,6 @@ public class UIManager : MonoBehaviour
             Debug.Log("No moves available to undo.");
             return;
         }
-
-        itemInventory.ConsumeUndoUse();
-        RefreshUndoBadge();
     }
 
     private void HandleBoardGenerated()
@@ -210,6 +222,7 @@ public class UIManager : MonoBehaviour
         ignoreNextStableBoardStateChanged = true;
         itemInventory?.ResetForFreshBoard();
         RefreshItemBadges();
+        RestartTimer();
     }
 
     private void HandleStableBoardStateChanged()
@@ -266,8 +279,11 @@ public class UIManager : MonoBehaviour
             return;
         }
 
+        boardManager.RecordUndoSnapshot();
+
         if (!boardManager.TryShuffleRemainingTiles())
         {
+            boardManager.DiscardLastUndoSnapshot();
             Debug.Log("Shuffle failed.");
             return;
         }
@@ -346,6 +362,7 @@ public class UIManager : MonoBehaviour
         }
 
         SetMenuOverlayVisible(false);
+        ResumeTimer();
     }
 
     public void OnClickCancelSelectionMode()
@@ -402,6 +419,7 @@ public class UIManager : MonoBehaviour
     private void HandleBoardWon(int seed)
     {
         Debug.Log($"Showing win popup for seed: {seed}");
+        isTimerRunning = false;
         SetMenuOverlayVisible(false);
         SetNoMovesOverlayVisible(false);
         SetWinOverlayVisible(true);
@@ -471,5 +489,84 @@ public class UIManager : MonoBehaviour
     private bool IsInventoryDebugModeEnabled()
     {
         return itemInventory != null && itemInventory.IsDebugModeEnabled();
+    }
+
+    private void RestartTimer()
+    {
+        elapsedSeconds = 0f;
+        lastDisplayedSecond = -1;
+        isTimerRunning = true;
+        RefreshTimerText(forceRefresh: true);
+    }
+
+    private void PauseTimer()
+    {
+        isTimerRunning = false;
+        RefreshTimerText(forceRefresh: true);
+    }
+
+    private void ResumeTimer()
+    {
+        if (IsWinOverlayVisible())
+        {
+            return;
+        }
+
+        isTimerRunning = true;
+        RefreshTimerText(forceRefresh: true);
+    }
+
+    private void UpdateTimer()
+    {
+        if (!isTimerRunning)
+        {
+            return;
+        }
+
+        elapsedSeconds += Time.unscaledDeltaTime;
+        RefreshTimerText(forceRefresh: false);
+    }
+
+    private void RefreshTimerText(bool forceRefresh)
+    {
+        if (timerText == null)
+        {
+            return;
+        }
+
+        int totalSeconds = Mathf.Max(0, Mathf.FloorToInt(elapsedSeconds));
+
+        if (!forceRefresh && totalSeconds == lastDisplayedSecond)
+        {
+            return;
+        }
+
+        lastDisplayedSecond = totalSeconds;
+
+        int hours = totalSeconds / 3600;
+        int minutes = (totalSeconds / 60) % 60;
+        int seconds = totalSeconds % 60;
+
+        timerText.text = hours > 0
+            ? $"{hours:00}:{minutes:00}:{seconds:00}"
+            : $"{minutes:00}:{seconds:00}";
+    }
+
+    public float GetElapsedSeconds()
+    {
+        return elapsedSeconds;
+    }
+
+    public bool IsTimerRunning()
+    {
+        return isTimerRunning;
+    }
+
+    public void RestoreTimerState(float savedElapsedSeconds, bool savedIsRunning)
+    {
+        elapsedSeconds = Mathf.Max(0f, savedElapsedSeconds);
+        isTimerRunning = savedIsRunning && !IsWinOverlayVisible();
+        lastDisplayedSecond = -1;
+        RefreshTimerText(forceRefresh: true);
     }
 }
