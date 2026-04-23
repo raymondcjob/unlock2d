@@ -65,8 +65,25 @@ public static class LocalizationManager
 
     public static event Action OnLanguageChanged;
 
-    public static string CurrentLanguageCode =>
-        PlayerPrefs.GetString(LanguageKey, DefaultLanguageCode);
+    public static string CurrentLanguageCode
+    {
+        get
+        {
+            EnsureLanguageInitialized();
+            return PlayerPrefs.GetString(LanguageKey, DefaultLanguageCode);
+        }
+    }
+
+    public static void EnsureLanguageInitialized()
+    {
+        if (PlayerPrefs.HasKey(LanguageKey))
+        {
+            return;
+        }
+
+        PlayerPrefs.SetString(LanguageKey, GetSystemLanguageCode());
+        PlayerPrefs.Save();
+    }
 
     public static void SetLanguage(string languageCode)
     {
@@ -101,5 +118,20 @@ public static class LocalizationManager
         }
 
         return key;
+    }
+
+    private static string GetSystemLanguageCode()
+    {
+        switch (Application.systemLanguage)
+        {
+            case SystemLanguage.ChineseTraditional:
+                return "zh-hk";
+            case SystemLanguage.Chinese:
+            case SystemLanguage.ChineseSimplified:
+                return "zh-cn";
+            case SystemLanguage.English:
+            default:
+                return DefaultLanguageCode;
+        }
     }
 }
