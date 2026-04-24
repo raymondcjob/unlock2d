@@ -11,6 +11,7 @@ public class UIManager : MonoBehaviour
 
     [Header("Scene Names")]
     [SerializeField] private string mainMenuSceneName = "MainMenu";
+    [SerializeField] private string settingsSceneName = "Settings";
 
     [Header("References")]
     [SerializeField] private BoardManager boardManager;
@@ -370,15 +371,13 @@ public class UIManager : MonoBehaviour
 
     public void OnClickSettings()
     {
-        // Implement Settings Overlay later
-        
-        if (boardInteractionController != null)
-        {
-            boardInteractionController.ToggleAutoHint();
-        }
-
+        saveGameManager?.SaveGameIfAllowed();
         SetMenuOverlayVisible(false);
-        ResumeTimer();
+        SetWinOverlayVisible(false);
+        SetNoMatchPopupVisible(false);
+        ClearBoardInteraction();
+        SettingsMenuManager.SetReturnScene(SceneManager.GetActiveScene().name);
+        SceneManager.LoadScene(settingsSceneName);
     }
 
     public void OnClickCancelSelectionMode()

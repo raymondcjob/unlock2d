@@ -5,6 +5,7 @@ using UnityEngine;
 public class BoardInteractionController : MonoBehaviour
 {
     private const float TutorialClickEnlargementScale = 1.15f;
+    private const string AutoHintEnabledKey = "settings.autoHintEnabled";
 
     public event Action InteractionVisualsCleared;
 
@@ -36,7 +37,7 @@ public class BoardInteractionController : MonoBehaviour
 
     [Header("Hint Settings")]
     [SerializeField] private bool autoHintEnabled = true;
-    [SerializeField] private float autoHintDelaySeconds = 5f;
+    [SerializeField] private float autoHintDelaySeconds = 3f;
     [SerializeField] private float autoHintScaleMultiplier = 1.15f;
 
     private readonly List<TileView> enlargedTiles = new List<TileView>();
@@ -79,6 +80,7 @@ public class BoardInteractionController : MonoBehaviour
 
     private void Start()
     {
+        autoHintEnabled = PlayerPrefs.GetInt(AutoHintEnabledKey, 1) == 1;
         ResetAutoHintTimer();
     }
 

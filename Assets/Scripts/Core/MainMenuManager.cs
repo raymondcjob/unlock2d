@@ -123,6 +123,7 @@ public class MainMenuManager : MonoBehaviour
     public void OnClickSettings()
     {
         ResetDebugUnlockSequence();
+        SettingsMenuManager.SetReturnScene(SceneManager.GetActiveScene().name);
         SceneManager.LoadScene(settingsSceneName);
     }
 

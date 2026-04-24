@@ -1,11 +1,14 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using TMPro;
 
 public class SettingsMenuManager : MonoBehaviour
 {
     private const string MusicMutedKey = "settings.musicMuted";
     private const string SoundMutedKey = "settings.soundMuted";
+    private const string AutoHintEnabledKey = "settings.autoHintEnabled";
+    private static string returnSceneName = "MainMenu";
 
     [Header("Scene Names")]
     [SerializeField] private string mainMenuSceneName = "MainMenu";
@@ -18,6 +21,7 @@ public class SettingsMenuManager : MonoBehaviour
     [Header("Buttons")]
     [SerializeField] private Button musicButton;
     [SerializeField] private Button soundButton;
+    [SerializeField] private Button hintButton;
     [SerializeField] private Button themesButton;
     [SerializeField] private Button languagesButton;
     [SerializeField] private Button backButton;
@@ -28,18 +32,31 @@ public class SettingsMenuManager : MonoBehaviour
     [Header("Button Images")]
     [SerializeField] private Image musicButtonImage;
     [SerializeField] private Image soundButtonImage;
+    [SerializeField] private Image hintButtonImage;
 
     [Header("Muted Visual")]
     [SerializeField] private Color mutedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
 
     private Color musicOriginalColor = Color.white;
     private Color soundOriginalColor = Color.white;
+    private Color hintOriginalColor = Color.white;
     private bool musicMuted;
     private bool soundMuted;
+    private bool autoHintEnabled;
+    private TMP_Text hintButtonText;
+
+    public static void SetReturnScene(string sceneName)
+    {
+        if (!string.IsNullOrEmpty(sceneName))
+        {
+            returnSceneName = sceneName;
+        }
+    }
 
     private void Awake()
     {
         ShowOnlyMainSettingsPanel();
+        ResolveHintButtonReferences();
 
         if (musicButtonImage != null)
         {
@@ -51,11 +68,28 @@ public class SettingsMenuManager : MonoBehaviour
             soundOriginalColor = soundButtonImage.color;
         }
 
+        if (hintButtonImage != null)
+        {
+            hintOriginalColor = hintButtonImage.color;
+        }
+
         musicMuted = PlayerPrefs.GetInt(MusicMutedKey, 0) == 1;
         soundMuted = PlayerPrefs.GetInt(SoundMutedKey, 0) == 1;
+        autoHintEnabled = PlayerPrefs.GetInt(AutoHintEnabledKey, 1) == 1;
 
         RegisterButtonListeners();
-        RefreshAudioButtonVisuals();
+        RefreshToggleButtonVisuals();
+        RefreshLocalizedTexts();
+    }
+
+    private void OnEnable()
+    {
+        LocalizationManager.OnLanguageChanged += RefreshLocalizedTexts;
+    }
+
+    private void OnDisable()
+    {
+        LocalizationManager.OnLanguageChanged -= RefreshLocalizedTexts;
     }
 
     private void Update()
@@ -71,7 +105,7 @@ public class SettingsMenuManager : MonoBehaviour
         musicMuted = !musicMuted;
         PlayerPrefs.SetInt(MusicMutedKey, musicMuted ? 1 : 0);
         PlayerPrefs.Save();
-        RefreshAudioButtonVisuals();
+        RefreshToggleButtonVisuals();
     }
 
     public void OnClickSound()
@@ -79,7 +113,15 @@ public class SettingsMenuManager : MonoBehaviour
         soundMuted = !soundMuted;
         PlayerPrefs.SetInt(SoundMutedKey, soundMuted ? 1 : 0);
         PlayerPrefs.Save();
-        RefreshAudioButtonVisuals();
+        RefreshToggleButtonVisuals();
+    }
+
+    public void OnClickHint()
+    {
+        autoHintEnabled = !autoHintEnabled;
+        PlayerPrefs.SetInt(AutoHintEnabledKey, autoHintEnabled ? 1 : 0);
+        PlayerPrefs.Save();
+        RefreshToggleButtonVisuals();
     }
 
     public void OnClickThemes()
@@ -122,7 +164,7 @@ public class SettingsMenuManager : MonoBehaviour
             return;
         }
 
-        SceneManager.LoadScene(mainMenuSceneName);
+        SceneManager.LoadScene(string.IsNullOrEmpty(returnSceneName) ? mainMenuSceneName : returnSceneName);
     }
 
     private void RegisterButtonListeners()
@@ -135,6 +177,11 @@ public class SettingsMenuManager : MonoBehaviour
         if (soundButton != null)
         {
             soundButton.onClick.AddListener(OnClickSound);
+        }
+
+        if (hintButton != null)
+        {
+            hintButton.onClick.AddListener(OnClickHint);
         }
 
         if (themesButton != null)
@@ -168,7 +215,7 @@ public class SettingsMenuManager : MonoBehaviour
         }
     }
 
-    private void RefreshAudioButtonVisuals()
+    private void RefreshToggleButtonVisuals()
     {
         if (musicButtonImage != null)
         {
@@ -178,6 +225,11 @@ public class SettingsMenuManager : MonoBehaviour
         if (soundButtonImage != null)
         {
             soundButtonImage.color = soundMuted ? mutedColor : soundOriginalColor;
+        }
+
+        if (hintButtonImage != null)
+        {
+            hintButtonImage.color = autoHintEnabled ? hintOriginalColor : mutedColor;
         }
     }
 
@@ -210,6 +262,69 @@ public class SettingsMenuManager : MonoBehaviour
         if (languageSelectionPanel != null)
         {
             languageSelectionPanel.SetActive(false);
+        }
+    }
+
+    private void ResolveHintButtonReferences()
+    {
+        if (hintButton == null)
+        {
+            Transform hintTransform = null;
+
+            if (settingsOverlaysRoot != null)
+            {
+                hintTransform = settingsOverlaysRoot.Find("SettingsPanel/Content/Hint");
+            }
+
+            if (hintTransform == null)
+            {
+                hintTransform = transform.Find("SettingsOverlays/SettingsPanel/Content/Hint");
+            }
+
+            if (hintTransform == null)
+            {
+                hintTransform = transform.Find("SettingsPanel/Content/Hint");
+            }
+
+            if (hintTransform == null)
+            {
+                GameObject hintObject = GameObject.Find("Hint");
+                if (hintObject != null)
+                {
+                    hintTransform = hintObject.transform;
+                }
+            }
+
+            if (hintTransform != null)
+            {
+                hintButton = hintTransform.GetComponent<Button>();
+            }
+        }
+
+        if (hintButton != null)
+        {
+            if (hintButtonImage == null)
+            {
+                hintButtonImage = hintButton.GetComponent<Image>();
+            }
+
+            if (hintButtonText == null)
+            {
+                hintButtonText = hintButton.GetComponentInChildren<TMP_Text>(true);
+            }
+        }
+    }
+
+    private void RefreshLocalizedTexts()
+    {
+        if (hintButtonText == null)
+        {
+            ResolveHintButtonReferences();
+        }
+
+        if (hintButtonText != null)
+        {
+            hintButtonText.text = LocalizationManager.GetText("settings.hint");
         }
     }
 }

@@ -3043,7 +3043,7 @@ MonoBehaviour:
   dragThreshold: 0.2
   moveCommitThresholdRatio: 0.5
   autoHintEnabled: 1
-  autoHintDelaySeconds: 5
+  autoHintDelaySeconds: 3
   autoHintScaleMultiplier: 1.15
 --- !u!1 &784112960
 GameObject:
