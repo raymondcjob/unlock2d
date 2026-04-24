@@ -636,7 +636,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -500, y: -500}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &169017015
 MonoBehaviour:
@@ -658,7 +658,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'No further matches available\nClick anywhere to dismiss'
+  m_text: No further matches available
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -685,8 +685,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 80
-  m_fontSizeBase: 80
+  m_fontSize: 40
+  m_fontSizeBase: 40
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1217,6 +1217,7 @@ GameObject:
   - component: {fileID: 312993553}
   - component: {fileID: 312993555}
   - component: {fileID: 312993554}
+  - component: {fileID: 312993556}
   m_Layer: 5
   m_Name: RestartText
   m_TagString: Untagged
@@ -1345,6 +1346,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 312993552}
   m_CullTransparentMesh: 1
+--- !u!114 &312993556
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 312993552}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3453f98f6836420787516321448cf93e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  localizationKey: gameMenu.restart
 --- !u!1 &381001746
 GameObject:
   m_ObjectHideFlags: 0
@@ -1844,7 +1858,7 @@ GameObject:
   - component: {fileID: 533266665}
   - component: {fileID: 533266664}
   m_Layer: 5
-  m_Name: NoMatchesOverlay
+  m_Name: NoMatchesPopup
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1904,9 +1918,9 @@ RectTransform:
   m_Father: {fileID: 1201505734}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: 0, y: 75}
+  m_SizeDelta: {x: -1000, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &551646212
 GameObject:
@@ -2528,10 +2542,10 @@ RectTransform:
   - {fileID: 312993553}
   m_Father: {fileID: 1522846034}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 200, y: -341.66666}
-  m_SizeDelta: {x: 400, y: 116.666664}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &651948992
 MonoBehaviour:
@@ -2878,10 +2892,10 @@ RectTransform:
   - {fileID: 1384137939}
   m_Father: {fileID: 1522846034}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 200, y: -199.99998}
-  m_SizeDelta: {x: 400, y: 116.666664}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &733944641
 MonoBehaviour:
@@ -4200,7 +4214,9 @@ MonoBehaviour:
   swapButtonStateView: {fileID: 551646217}
   swapBadgeRoot: {fileID: 1252034321}
   swapCountText: {fileID: 491936158}
-  noMovesOverlayRoot: {fileID: 533266663}
+  noMatchPopupRoot: {fileID: 533266663}
+  noMatchPopupVisibleDurationSeconds: 3
+  noMatchPopupFadeDurationSeconds: 1
   winOverlayRoot: {fileID: 219030155}
   timerText: {fileID: 152994602}
 --- !u!1 &1252034321
@@ -4335,6 +4351,7 @@ GameObject:
   - component: {fileID: 1384137939}
   - component: {fileID: 1384137941}
   - component: {fileID: 1384137940}
+  - component: {fileID: 1384137942}
   m_Layer: 5
   m_Name: NextGameText
   m_TagString: Untagged
@@ -4461,6 +4478,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1384137938}
   m_CullTransparentMesh: 1
+--- !u!114 &1384137942
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1384137938}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3453f98f6836420787516321448cf93e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  localizationKey: main.newGame
 --- !u!1 &1400191953
 GameObject:
   m_ObjectHideFlags: 0
@@ -5511,6 +5541,7 @@ GameObject:
   - component: {fileID: 1897750474}
   - component: {fileID: 1897750476}
   - component: {fileID: 1897750475}
+  - component: {fileID: 1897750477}
   m_Layer: 5
   m_Name: MainMenuText
   m_TagString: Untagged
@@ -5637,6 +5668,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1897750473}
   m_CullTransparentMesh: 1
+--- !u!114 &1897750477
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1897750473}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3453f98f6836420787516321448cf93e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  localizationKey: gameMenu.mainMenu
 --- !u!1 &1903456788
 GameObject:
   m_ObjectHideFlags: 0
@@ -5989,9 +6033,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   boardWidth: 17
   boardHeight: 8
+  currentBoardSizePreset: 0
   baseTileScale: 0.2
-  baseTileSpacingX: 0.64
-  baseTileSpacingY: 0.86
+  TileSpacing8X: 0.64
+  TileSpacing8Y: 0.86
+  referenceBoardHeight: 8
+  TileSpacing6X: 0.85333335
+  TileSpacing6Y: 1.1466666
   generateRandomSeedOnStart: 1
   maxSeedValidationAttempts: 500
   tilePrefab: {fileID: 1211515443965400861, guid: 69cad1fe55101eb4a9df0d621995734f, type: 3}
@@ -6222,10 +6270,10 @@ RectTransform:
   - {fileID: 1897750474}
   m_Father: {fileID: 1522846034}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 200, y: -58.333332}
-  m_SizeDelta: {x: 400, y: 116.666664}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2142417749
 MonoBehaviour:

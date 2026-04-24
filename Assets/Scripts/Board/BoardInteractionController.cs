@@ -1,8 +1,13 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class BoardInteractionController : MonoBehaviour
 {
+    private const float TutorialClickEnlargementScale = 1.15f;
+
+    public event Action InteractionVisualsCleared;
+
     private enum SelectionMode
     {
         None,
@@ -44,6 +49,10 @@ public class BoardInteractionController : MonoBehaviour
     private Vector2Int pendingMoveOriginalActivePosition;
     private Vector2Int pendingMoveDirection = Vector2Int.zero;
     private int pendingMoveSteps;
+    private Func<TileView, bool> tutorialInteractionFilter;
+    private Func<TileView, bool> tutorialSelectionFilter;
+    private Func<TileView, bool> tutorialEnlargementFilter;
+    private bool suppressSameTypeEnlargement;
 
     private float autoHintTimer;
     private readonly List<TileView> autoHintTiles = new List<TileView>();
@@ -186,6 +195,38 @@ public class BoardInteractionController : MonoBehaviour
         Debug.Log($"Auto hint {(autoHintEnabled ? "enabled" : "disabled")}");
     }
 
+    public void SetAutoHintEnabled(bool enabled)
+    {
+        autoHintEnabled = enabled;
+
+        if (!autoHintEnabled)
+        {
+            ClearAutoHint();
+        }
+
+        ResetAutoHintTimer();
+    }
+
+    public void SetSuppressSameTypeEnlargement(bool suppress)
+    {
+        suppressSameTypeEnlargement = suppress;
+
+        if (suppressSameTypeEnlargement)
+        {
+            ClearEnlargedTiles();
+        }
+    }
+
+    public void SetTutorialEnlargementFilter(Func<TileView, bool> filter)
+    {
+        tutorialEnlargementFilter = filter;
+
+        if (tutorialEnlargementFilter == null)
+        {
+            ClearEnlargedTiles();
+        }
+    }
+
     private void HandleStableBoardStateChanged()
     {
         ClearAutoHint();
@@ -193,17 +234,17 @@ public class BoardInteractionController : MonoBehaviour
 
         if (boardManager == null || boardManager.GetRemainingFaceUpTiles() <= 0)
         {
-            uiManager?.HideNoMovesOverlay();
+            uiManager?.HideNoMatchPopup();
             return;
         }
 
         if (BoardMoveAnalyzer.HasAnyAvailableMove(boardManager))
         {
-            uiManager?.HideNoMovesOverlay();
+            uiManager?.HideNoMatchPopup();
         }
         else
         {
-            uiManager?.ShowNoMovesOverlay();
+            uiManager?.ShowNoMatchPopup();
         }
     }
 
@@ -280,6 +321,13 @@ public class BoardInteractionController : MonoBehaviour
             return;
         }
 
+        if (tutorialInteractionFilter != null && !tutorialInteractionFilter(clickedTile))
+        {
+            ClearInteractionVisuals();
+            ResetInteractionState();
+            return;
+        }
+
         activeTile = clickedTile;
         pointerDownWorldPosition = worldPosition;
         isPointerHeld = true;
@@ -287,7 +335,10 @@ public class BoardInteractionController : MonoBehaviour
         currentDragDirection = Vector2Int.zero;
         currentPreviewDistance = 0f;
 
-        ShowSameTypeEnlargement(activeTile);
+        if (!suppressSameTypeEnlargement)
+        {
+            ShowSameTypeEnlargement(activeTile);
+        }
     }
 
     private void OnPointerHeld()
@@ -411,6 +462,11 @@ public class BoardInteractionController : MonoBehaviour
     private void HandleTileSelection(TileView clickedTile)
     {
         if (clickedTile == null || clickedTile.IsPath)
+        {
+            return;
+        }
+
+        if (tutorialSelectionFilter != null && !tutorialSelectionFilter(clickedTile))
         {
             return;
         }
@@ -649,7 +705,12 @@ public class BoardInteractionController : MonoBehaviour
 
         foreach (TileView tile in sameTypeTiles)
         {
-            tile.SetEnlarged(true);
+            if (tutorialEnlargementFilter != null && !tutorialEnlargementFilter(tile))
+            {
+                continue;
+            }
+
+            tile.SetCustomScale(TutorialClickEnlargementScale, 10);
             enlargedTiles.Add(tile);
         }
     }
@@ -719,6 +780,7 @@ public class BoardInteractionController : MonoBehaviour
         }
 
         enlargedTiles.Clear();
+        InteractionVisualsCleared?.Invoke();
     }
 
     public void ForceClearInteractionState()
@@ -751,6 +813,16 @@ public class BoardInteractionController : MonoBehaviour
         ClearInteractionVisuals();
         selectedTileA = null;
         selectionMode = SelectionMode.None;
+    }
+
+    public void SetTutorialInteractionFilter(Func<TileView, bool> filter)
+    {
+        tutorialInteractionFilter = filter;
+    }
+
+    public void SetTutorialSelectionFilter(Func<TileView, bool> filter)
+    {
+        tutorialSelectionFilter = filter;
     }
 
     private void ResetInteractionState()

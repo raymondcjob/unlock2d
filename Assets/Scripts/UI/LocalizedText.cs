@@ -31,6 +31,7 @@ public class LocalizedText : MonoBehaviour
             targetText = GetComponent<TMP_Text>();
         }
 
+        LocalizationManager.ApplyFont(targetText);
         targetText.text = LocalizationManager.GetText(localizationKey);
     }
 }

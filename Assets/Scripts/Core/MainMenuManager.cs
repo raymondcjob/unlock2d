@@ -10,6 +10,7 @@ public class MainMenuManager : MonoBehaviour
     [Header("Scene Names")]
     [SerializeField] private string gameSceneName = "GameScene";
     [SerializeField] private string settingsSceneName = "Settings";
+    [SerializeField] private string howToPlaySceneName = "HowToPlay";
 
     [Header("Buttons")]
     [SerializeField] private UIButtonStateView continueButtonStateView;
@@ -128,8 +129,7 @@ public class MainMenuManager : MonoBehaviour
     public void OnClickHowToPlay()
     {
         ResetDebugUnlockSequence();
-        Debug.Log("How To Play button clicked.");
-        // Later: open tutorial / instructions panel
+        SceneManager.LoadScene(howToPlaySceneName);
     }
 
     public void OnClickQuit()
@@ -353,6 +353,7 @@ public class MainMenuManager : MonoBehaviour
     {
         if (textComponent != null)
         {
+            LocalizationManager.ApplyFont(textComponent);
             textComponent.text = LocalizationManager.GetText(localizationKey);
         }
     }

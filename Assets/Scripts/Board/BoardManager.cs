@@ -47,6 +47,7 @@ public class BoardManager : MonoBehaviour
     public event Action OnBoardGenerated;
     public event Action OnNewRandomBoardGenerated;
     public event Action OnBoardRestarted;
+    public event Action<TileView, TileView> OnTilesMatched;
 
     [Header("References")]
     [SerializeField] private TileView tilePrefab;
@@ -504,6 +505,7 @@ public class BoardManager : MonoBehaviour
             return;
         }
 
+        OnTilesMatched?.Invoke(tileA, tileB);
         tileA.ConvertToPath(backTileSprite);
         tileB.ConvertToPath(backTileSprite);
 

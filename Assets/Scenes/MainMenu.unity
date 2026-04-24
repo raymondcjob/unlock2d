@@ -2620,6 +2620,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   gameSceneName: GameScene
   settingsSceneName: Settings
+  howToPlaySceneName: HowToPlay
   continueButtonStateView: {fileID: 99859594}
   boardSizeSelectionOverlay: {fileID: 2127339181}
   backButtonDoubleTapWindowSeconds: 1.5

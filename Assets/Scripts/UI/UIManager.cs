@@ -1,9 +1,14 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using TMPro;
+using System;
+using System.Collections;
 
 public class UIManager : MonoBehaviour
 {
+    public Func<bool> ShuffleOverride;
+
     [Header("Scene Names")]
     [SerializeField] private string mainMenuSceneName = "MainMenu";
 
@@ -28,8 +33,10 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject swapBadgeRoot;
     [SerializeField] private TMP_Text swapCountText;
 
-    [Header("No Moves Popup")]
-    [SerializeField] private GameObject noMovesOverlayRoot;
+    [Header("No Match Popup")]
+    [SerializeField] private GameObject noMatchPopupRoot;
+    [SerializeField] private float noMatchPopupVisibleDurationSeconds = 3f;
+    [SerializeField] private float noMatchPopupFadeDurationSeconds = 1f;
 
     [Header("Win Popup")]
     [SerializeField] private GameObject winOverlayRoot;
@@ -43,6 +50,12 @@ public class UIManager : MonoBehaviour
     private float elapsedSeconds;
     private int lastDisplayedSecond = -1;
     private bool isTimerRunning;
+    private Coroutine hideNoMatchPopupCoroutine;
+    private CanvasGroup noMatchPopupCanvasGroup;
+
+    public event Action UndoApplied;
+    public event Action ShuffleApplied;
+    public event Action SwapModeStarted;
 
     private void OnEnable()
     {
@@ -80,7 +93,7 @@ public class UIManager : MonoBehaviour
     {
         SetMenuOverlayVisible(false);
         SetWinOverlayVisible(false);
-        SetNoMovesOverlayVisible(false);
+        SetNoMatchPopupVisible(false);
 
         RefreshUndoBadge();
         RefreshShuffleBadge();
@@ -127,12 +140,6 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        if (IsNoMovesOverlayVisible())
-        {
-            SetNoMovesOverlayVisible(false);
-            return;
-        }
-
         if (IsWinOverlayVisible())
         {
             return;
@@ -152,7 +159,7 @@ public class UIManager : MonoBehaviour
         saveGameManager?.SaveGameIfAllowed();
         SetMenuOverlayVisible(false);
         SetWinOverlayVisible(false);
-        SetNoMovesOverlayVisible(false);
+        SetNoMatchPopupVisible(false);
         ClearBoardInteraction();
 
         SceneManager.LoadScene(mainMenuSceneName);
@@ -162,7 +169,7 @@ public class UIManager : MonoBehaviour
     {
         SetMenuOverlayVisible(false);
         SetWinOverlayVisible(false);
-        SetNoMovesOverlayVisible(false);
+        SetNoMatchPopupVisible(false);
         ClearBoardInteraction();
 
         if (boardManager != null)
@@ -175,7 +182,7 @@ public class UIManager : MonoBehaviour
     {
         SetMenuOverlayVisible(false);
         SetWinOverlayVisible(false);
-        SetNoMovesOverlayVisible(false);
+        SetNoMatchPopupVisible(false);
         ClearBoardInteraction();
 
         if (boardManager != null)
@@ -195,7 +202,7 @@ public class UIManager : MonoBehaviour
     {
         SetMenuOverlayVisible(false);
         SetWinOverlayVisible(false);
-        SetNoMovesOverlayVisible(false);
+        SetNoMatchPopupVisible(false);
         ClearBoardInteraction();
 
         if (boardManager == null)
@@ -214,6 +221,8 @@ public class UIManager : MonoBehaviour
             Debug.Log("No moves available to undo.");
             return;
         }
+
+        UndoApplied?.Invoke();
     }
 
     private void HandleBoardGenerated()
@@ -265,8 +274,13 @@ public class UIManager : MonoBehaviour
     {
         SetMenuOverlayVisible(false);
         SetWinOverlayVisible(false);
-        SetNoMovesOverlayVisible(false);
+        SetNoMatchPopupVisible(false);
         ClearBoardInteraction();
+
+        if (ShuffleOverride != null && ShuffleOverride())
+        {
+            return;
+        }
 
         if (boardManager == null)
         {
@@ -291,6 +305,7 @@ public class UIManager : MonoBehaviour
         itemInventory.ConsumeShuffleUse();
         RefreshShuffleBadge();
         RefreshUndoBadge();
+        ShuffleApplied?.Invoke();
     }
 
     private void RefreshShuffleBadge()
@@ -324,6 +339,7 @@ public class UIManager : MonoBehaviour
         if (boardInteractionController != null)
         {
             boardInteractionController.BeginSwapSelection();
+            SwapModeStarted?.Invoke();
         }
     }
 
@@ -373,23 +389,38 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void ShowNoMovesOverlay()
+    public void ShowNoMatchPopup()
     {
-        SetNoMovesOverlayVisible(true);
+        ConfigureNoMatchPopupForPassiveDisplay();
+        ResetNoMatchPopupVisualState();
+        SetNoMatchPopupVisible(true);
+
+        if (hideNoMatchPopupCoroutine != null)
+        {
+            StopCoroutine(hideNoMatchPopupCoroutine);
+        }
+
+        hideNoMatchPopupCoroutine = StartCoroutine(HideNoMatchPopupAfterDelay());
     }
 
-    public void HideNoMovesOverlay()
+    public void HideNoMatchPopup()
     {
-        SetNoMovesOverlayVisible(false);
+        if (hideNoMatchPopupCoroutine != null)
+        {
+            StopCoroutine(hideNoMatchPopupCoroutine);
+            hideNoMatchPopupCoroutine = null;
+        }
+
+        SetNoMatchPopupVisible(false);
     }
 
     public bool DismissTransientOverlays()
     {
         bool dismissed = false;
 
-        if (IsNoMovesOverlayVisible())
+        if (IsNoMatchPopupVisible())
         {
-            SetNoMovesOverlayVisible(false);
+            SetNoMatchPopupVisible(false);
             dismissed = true;
         }
 
@@ -398,7 +429,7 @@ public class UIManager : MonoBehaviour
 
     public bool IsModalOverlayVisible()
     {
-        return IsMenuOverlayVisible() || IsWinOverlayVisible() || IsNoMovesOverlayVisible();
+        return IsMenuOverlayVisible() || IsWinOverlayVisible();
     }
 
     public bool IsMenuOverlayVisible()
@@ -411,9 +442,9 @@ public class UIManager : MonoBehaviour
         return winOverlayRoot != null && winOverlayRoot.activeSelf;
     }
 
-    public bool IsNoMovesOverlayVisible()
+    public bool IsNoMatchPopupVisible()
     {
-        return noMovesOverlayRoot != null && noMovesOverlayRoot.activeSelf;
+        return noMatchPopupRoot != null && noMatchPopupRoot.activeSelf;
     }
 
     private void HandleBoardWon(int seed)
@@ -421,7 +452,7 @@ public class UIManager : MonoBehaviour
         Debug.Log($"Showing win popup for seed: {seed}");
         isTimerRunning = false;
         SetMenuOverlayVisible(false);
-        SetNoMovesOverlayVisible(false);
+        SetNoMatchPopupVisible(false);
         SetWinOverlayVisible(true);
     }
 
@@ -454,11 +485,72 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    private void SetNoMovesOverlayVisible(bool visible)
+    private void SetNoMatchPopupVisible(bool visible)
     {
-        if (noMovesOverlayRoot != null)
+        if (noMatchPopupRoot != null)
         {
-            noMovesOverlayRoot.SetActive(visible);
+            noMatchPopupRoot.SetActive(visible);
+        }
+
+        if (!visible)
+        {
+            ResetNoMatchPopupVisualState();
+            hideNoMatchPopupCoroutine = null;
+        }
+    }
+
+    private IEnumerator HideNoMatchPopupAfterDelay()
+    {
+        yield return new WaitForSecondsRealtime(noMatchPopupVisibleDurationSeconds);
+
+        if (noMatchPopupCanvasGroup != null)
+        {
+            float duration = Mathf.Max(0.01f, noMatchPopupFadeDurationSeconds);
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                noMatchPopupCanvasGroup.alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
+                yield return null;
+            }
+
+            noMatchPopupCanvasGroup.alpha = 0f;
+        }
+
+        hideNoMatchPopupCoroutine = null;
+        SetNoMatchPopupVisible(false);
+    }
+
+    private void ConfigureNoMatchPopupForPassiveDisplay()
+    {
+        if (noMatchPopupRoot == null)
+        {
+            return;
+        }
+
+        CanvasGroup canvasGroup = noMatchPopupRoot.GetComponent<CanvasGroup>();
+        if (canvasGroup == null)
+        {
+            canvasGroup = noMatchPopupRoot.AddComponent<CanvasGroup>();
+        }
+
+        noMatchPopupCanvasGroup = canvasGroup;
+        canvasGroup.interactable = false;
+        canvasGroup.blocksRaycasts = false;
+
+        Graphic[] graphics = noMatchPopupRoot.GetComponentsInChildren<Graphic>(true);
+        for (int i = 0; i < graphics.Length; i++)
+        {
+            graphics[i].raycastTarget = false;
+        }
+    }
+
+    private void ResetNoMatchPopupVisualState()
+    {
+        if (noMatchPopupCanvasGroup != null)
+        {
+            noMatchPopupCanvasGroup.alpha = 1f;
         }
     }
 

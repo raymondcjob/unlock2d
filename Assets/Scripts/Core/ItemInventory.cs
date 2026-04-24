@@ -14,6 +14,7 @@ public class ItemInventory : MonoBehaviour
     private int undoUses;
     private int shuffleUses;
     private int swapUses;
+    private bool suppressDebugMode;
 
     public event Action OnInventoryChanged;
 
@@ -55,7 +56,22 @@ public class ItemInventory : MonoBehaviour
 
     public bool IsDebugModeEnabled()
     {
-        return debugSettings != null && debugSettings.DebugMode;
+        return !suppressDebugMode && debugSettings != null && debugSettings.DebugMode;
+    }
+
+    public void SetRuntimeCounts(int undoCount, int shuffleCount, int swapCount, bool ignoreDebugMode = false)
+    {
+        undoUses = Mathf.Max(0, undoCount);
+        shuffleUses = Mathf.Max(0, shuffleCount);
+        swapUses = Mathf.Max(0, swapCount);
+        suppressDebugMode = ignoreDebugMode;
+        OnInventoryChanged?.Invoke();
+    }
+
+    public void ClearRuntimeDebugOverride()
+    {
+        suppressDebugMode = false;
+        OnInventoryChanged?.Invoke();
     }
 
     public void ConsumeUndoUse()
@@ -65,6 +81,39 @@ public class ItemInventory : MonoBehaviour
             undoUses--;
             OnInventoryChanged?.Invoke();
         }
+    }
+
+    public void AddUndoUses(int amount)
+    {
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        undoUses += amount;
+        OnInventoryChanged?.Invoke();
+    }
+
+    public void AddShuffleUses(int amount)
+    {
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        shuffleUses += amount;
+        OnInventoryChanged?.Invoke();
+    }
+
+    public void AddSwapUses(int amount)
+    {
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        swapUses += amount;
+        OnInventoryChanged?.Invoke();
     }
 
     public void ConsumeShuffleUse()
