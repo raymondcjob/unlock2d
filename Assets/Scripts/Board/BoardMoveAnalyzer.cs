@@ -102,6 +102,20 @@ public static class BoardMoveAnalyzer
         return TryFindAnyMove(state, out hint);
     }
 
+    public static List<HintResult> GetAllHints(BoardManager boardManager)
+    {
+        List<HintResult> hints = new List<HintResult>();
+
+        if (boardManager == null)
+        {
+            return hints;
+        }
+
+        AnalyzerState state = CreateStateFromBoard(boardManager);
+        CollectAllHints(state, hints);
+        return hints;
+    }
+
     public static bool ShouldRegenerateInitialLayout(int[,] tileTypeLayout)
     {
         if (tileTypeLayout == null)
@@ -355,6 +369,79 @@ public static class BoardMoveAnalyzer
         return false;
     }
 
+    private static void CollectAllHints(AnalyzerState state, List<HintResult> hints)
+    {
+        HashSet<DirectMatchPair> seenPairs = new HashSet<DirectMatchPair>();
+
+        for (int y = 0; y < state.Height; y++)
+        {
+            for (int x = 0; x < state.Width; x++)
+            {
+                Vector2Int sourcePosition = new Vector2Int(x, y);
+
+                if (!HasActiveTile(state, sourcePosition))
+                {
+                    continue;
+                }
+
+                List<Vector2Int> directMatches = GetDirectMatchPositions(state, sourcePosition);
+
+                foreach (Vector2Int targetPosition in directMatches)
+                {
+                    DirectMatchPair pair = new DirectMatchPair(sourcePosition, targetPosition);
+
+                    if (!seenPairs.Add(pair))
+                    {
+                        continue;
+                    }
+
+                    hints.Add(new HintResult
+                    {
+                        SourceTile = state.TileViews[sourcePosition.x, sourcePosition.y],
+                        TargetTile = state.TileViews[targetPosition.x, targetPosition.y],
+                        Kind = MoveKind.Direct,
+                        Direction = Vector2Int.zero,
+                        Steps = 0
+                    });
+                }
+            }
+        }
+
+        for (int y = 0; y < state.Height; y++)
+        {
+            for (int x = 0; x < state.Width; x++)
+            {
+                Vector2Int sourcePosition = new Vector2Int(x, y);
+
+                if (!HasActiveTile(state, sourcePosition))
+                {
+                    continue;
+                }
+
+                List<HintResult> dragHints = GetDragHintResults(state, sourcePosition);
+
+                foreach (HintResult dragHint in dragHints)
+                {
+                    if (dragHint.SourceTile == null || dragHint.TargetTile == null)
+                    {
+                        continue;
+                    }
+
+                    DirectMatchPair pair = new DirectMatchPair(
+                        dragHint.SourceTile.GridPosition,
+                        dragHint.TargetTile.GridPosition);
+
+                    if (!seenPairs.Add(pair))
+                    {
+                        continue;
+                    }
+
+                    hints.Add(dragHint);
+                }
+            }
+        }
+    }
+
     private static bool TryFindAnyDragMove(AnalyzerState state, out HintResult hint)
     {
         hint = default;
@@ -505,6 +592,107 @@ public static class BoardMoveAnalyzer
         }
 
         return false;
+    }
+
+    private static List<HintResult> GetDragHintResults(AnalyzerState state, Vector2Int activePosition)
+    {
+        List<HintResult> results = new List<HintResult>();
+        int? activeTypeId = state.TileTypeIds[activePosition.x, activePosition.y];
+
+        if (!activeTypeId.HasValue)
+        {
+            return results;
+        }
+
+        HashSet<Vector2Int> currentDirectMatches = new HashSet<Vector2Int>(
+            GetDirectMatchPositions(state, activePosition));
+        HashSet<DirectMatchPair> seenPairs = new HashSet<DirectMatchPair>();
+
+        foreach (Vector2Int testDirection in CardinalDirections)
+        {
+            List<Vector2Int> movedGroup = GetMovedGroup(state, activePosition, testDirection);
+            HashSet<Vector2Int> movedGroupSet = new HashSet<Vector2Int>(movedGroup);
+
+            int maxMoveSteps = GetMaxMoveSteps(state, movedGroup, testDirection);
+
+            if (maxMoveSteps <= 0)
+            {
+                continue;
+            }
+
+            for (int testSteps = 1; testSteps <= maxMoveSteps; testSteps++)
+            {
+                Vector2Int projectedPosition = activePosition + testDirection * testSteps;
+                HashSet<Vector2Int> vacatedPositions = new HashSet<Vector2Int>(movedGroup);
+                HashSet<Vector2Int> occupiedPositions = new HashSet<Vector2Int>();
+
+                foreach (Vector2Int movedPosition in movedGroup)
+                {
+                    occupiedPositions.Add(movedPosition + testDirection * testSteps);
+                }
+
+                for (int y = 0; y < state.Height; y++)
+                {
+                    for (int x = 0; x < state.Width; x++)
+                    {
+                        Vector2Int otherPosition = new Vector2Int(x, y);
+
+                        if (!HasActiveTile(state, otherPosition))
+                        {
+                            continue;
+                        }
+
+                        if (otherPosition == activePosition)
+                        {
+                            continue;
+                        }
+
+                        if (movedGroupSet.Contains(otherPosition))
+                        {
+                            continue;
+                        }
+
+                        if (state.TileTypeIds[otherPosition.x, otherPosition.y] != activeTypeId)
+                        {
+                            continue;
+                        }
+
+                        if (currentDirectMatches.Contains(otherPosition))
+                        {
+                            continue;
+                        }
+
+                        if (!CanPositionsMatch(
+                            state,
+                            projectedPosition,
+                            otherPosition,
+                            vacatedPositions,
+                            occupiedPositions))
+                        {
+                            continue;
+                        }
+
+                        DirectMatchPair pair = new DirectMatchPair(activePosition, otherPosition);
+
+                        if (!seenPairs.Add(pair))
+                        {
+                            continue;
+                        }
+
+                        results.Add(new HintResult
+                        {
+                            SourceTile = state.TileViews[activePosition.x, activePosition.y],
+                            TargetTile = state.TileViews[otherPosition.x, otherPosition.y],
+                            Kind = MoveKind.Drag,
+                            Direction = testDirection,
+                            Steps = testSteps
+                        });
+                    }
+                }
+            }
+        }
+
+        return results;
     }
 
     private static List<Vector2Int> GetDirectMatchPositions(AnalyzerState state, Vector2Int sourcePosition)

@@ -26,10 +26,10 @@ public static class HowToPlayTutorialBootstrap
             boardManager.enabled = false;
         }
 
-        SaveGameManager saveGameManager = Object.FindAnyObjectByType<SaveGameManager>();
-        if (saveGameManager != null)
+        GameManager gameManager = Object.FindAnyObjectByType<GameManager>();
+        if (gameManager != null)
         {
-            saveGameManager.enabled = false;
+            gameManager.enabled = false;
         }
 
         if (Object.FindAnyObjectByType<HowToPlayTutorialController>() != null)

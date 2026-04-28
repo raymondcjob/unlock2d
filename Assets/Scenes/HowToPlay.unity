@@ -4189,7 +4189,6 @@ MonoBehaviour:
   boardInteractionController: {fileID: 753556429}
   dragPreviewController: {fileID: 936484176}
   itemInventory: {fileID: 1562327446}
-  saveGameManager: {fileID: 1562327447}
   menuOverlayRoot: {fileID: 1153341302}
   undoButtonStateView: {fileID: 408855610}
   undoBadgeRoot: {fileID: 2096522071}
@@ -4756,12 +4755,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 1562327442}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3e4f6a0bb0b8494ba4c97d6ad5f2a5c2, type: 3}
+  m_Script: {fileID: 11500000, guid: 43fa39669839cd248996c2362ef983a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   boardManager: {fileID: 2074807008}
   itemInventory: {fileID: 1562327446}
   uiManager: {fileID: 1201505735}
+  mainMenuSceneName: MainMenu
+  settingsSceneName: Settings
   autosaveEnabled: 1
 --- !u!1 &1579207675
 GameObject:

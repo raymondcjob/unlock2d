@@ -4199,11 +4199,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   mainMenuSceneName: MainMenu
+  settingsSceneName: Settings
   boardManager: {fileID: 2074807008}
   boardInteractionController: {fileID: 753556429}
   dragPreviewController: {fileID: 936484176}
   itemInventory: {fileID: 1562327446}
-  saveGameManager: {fileID: 1562327447}
+  gameManager: {fileID: 1562327447}
   menuOverlayRoot: {fileID: 1153341302}
   undoButtonStateView: {fileID: 408855610}
   undoBadgeRoot: {fileID: 2096522071}
@@ -4706,9 +4707,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1562327443}
-  - component: {fileID: 1562327444}
-  - component: {fileID: 1562327445}
-  - component: {fileID: 1562327446}
   - component: {fileID: 1562327447}
   m_Layer: 0
   m_Name: GameManager
@@ -4729,8 +4727,43 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1562327449}
+  - {fileID: 1562327452}
   m_Father: {fileID: 668526852}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1562327450
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1562327449}
+  - component: {fileID: 1562327444}
+  - component: {fileID: 1562327445}
+  m_Layer: 0
+  m_Name: DebugManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1562327449
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1562327450}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1562327443}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1562327444
 MonoBehaviour:
@@ -4738,7 +4771,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1562327442}
+  m_GameObject: {fileID: 1562327450}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0a9b0a6e2f3b4e858cc0a7912468f001, type: 3}
@@ -4751,7 +4784,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1562327442}
+  m_GameObject: {fileID: 1562327450}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1b8c1b7f304c4f969dd1b8923579f112, type: 3}
@@ -4767,7 +4800,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1562327442}
+  m_GameObject: {fileID: 1562327451}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2c9d5d8f4c8149ff9a60d542041266a1, type: 3}
@@ -4777,6 +4810,38 @@ MonoBehaviour:
   startingUndoCount: 0
   startingShuffleCount: 0
   startingSwapCount: 0
+--- !u!1 &1562327451
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1562327452}
+  - component: {fileID: 1562327446}
+  m_Layer: 0
+  m_Name: PlayerInventory
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1562327452
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1562327451}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1562327443}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1562327447
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4786,12 +4851,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 1562327442}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3e4f6a0bb0b8494ba4c97d6ad5f2a5c2, type: 3}
+  m_Script: {fileID: 11500000, guid: 43fa39669839cd248996c2362ef983a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   boardManager: {fileID: 2074807008}
   itemInventory: {fileID: 1562327446}
   uiManager: {fileID: 1201505735}
+  mainMenuSceneName: MainMenu
+  settingsSceneName: Settings
   autosaveEnabled: 1
 --- !u!1 &1579207675
 GameObject:

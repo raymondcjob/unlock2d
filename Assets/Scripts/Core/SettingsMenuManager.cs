@@ -164,7 +164,14 @@ public class SettingsMenuManager : MonoBehaviour
             return;
         }
 
-        SceneManager.LoadScene(string.IsNullOrEmpty(returnSceneName) ? mainMenuSceneName : returnSceneName);
+        string targetSceneName = string.IsNullOrEmpty(returnSceneName) ? mainMenuSceneName : returnSceneName;
+
+        if (targetSceneName == "GameScene")
+        {
+            GameManager.RequestRestorePendingReturnGameOnNextGameScene();
+        }
+
+        SceneManager.LoadScene(targetSceneName);
     }
 
     private void RegisterButtonListeners()

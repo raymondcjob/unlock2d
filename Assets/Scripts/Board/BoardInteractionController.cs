@@ -57,6 +57,9 @@ public class BoardInteractionController : MonoBehaviour
 
     private float autoHintTimer;
     private readonly List<TileView> autoHintTiles = new List<TileView>();
+    private readonly List<BoardMoveAnalyzer.HintResult> cachedAutoHints = new List<BoardMoveAnalyzer.HintResult>();
+    private int nextAutoHintIndex;
+    private bool isAutoHintCacheDirty = true;
 
 
     private SelectionMode selectionMode = SelectionMode.None;
@@ -67,6 +70,8 @@ public class BoardInteractionController : MonoBehaviour
         if (boardManager != null)
         {
             boardManager.OnStableBoardStateChanged += HandleStableBoardStateChanged;
+            boardManager.OnTilesMatched += HandleTilesMatched;
+            boardManager.OnSwapPerformed += HandleSwapPerformed;
         }
     }
 
@@ -75,6 +80,8 @@ public class BoardInteractionController : MonoBehaviour
         if (boardManager != null)
         {
             boardManager.OnStableBoardStateChanged -= HandleStableBoardStateChanged;
+            boardManager.OnTilesMatched -= HandleTilesMatched;
+            boardManager.OnSwapPerformed -= HandleSwapPerformed;
         }
     }
 
@@ -146,7 +153,9 @@ public class BoardInteractionController : MonoBehaviour
 
         autoHintTimer = 0f;
 
-        if (BoardMoveAnalyzer.TryFindHint(boardManager, out BoardMoveAnalyzer.HintResult hint))
+        EnsureAutoHintCache();
+
+        if (TryGetNextAutoHint(out BoardMoveAnalyzer.HintResult hint))
         {
             ApplyAutoHint(hint.SourceTile, hint.TargetTile);
         }
@@ -187,12 +196,85 @@ public class BoardInteractionController : MonoBehaviour
         autoHintTimer = 0f;
     }
 
+    private void EnsureAutoHintCache()
+    {
+        if (!isAutoHintCacheDirty)
+        {
+            return;
+        }
+
+        cachedAutoHints.Clear();
+        nextAutoHintIndex = 0;
+        isAutoHintCacheDirty = false;
+
+        if (boardManager == null)
+        {
+            return;
+        }
+
+        cachedAutoHints.AddRange(BoardMoveAnalyzer.GetAllHints(boardManager));
+        ShuffleAutoHints(cachedAutoHints);
+    }
+
+    private bool TryGetNextAutoHint(out BoardMoveAnalyzer.HintResult hint)
+    {
+        hint = default;
+
+        if (cachedAutoHints.Count == 0)
+        {
+            return false;
+        }
+
+        if (nextAutoHintIndex < 0 || nextAutoHintIndex >= cachedAutoHints.Count)
+        {
+            nextAutoHintIndex = 0;
+        }
+
+        hint = cachedAutoHints[nextAutoHintIndex];
+        nextAutoHintIndex = (nextAutoHintIndex + 1) % cachedAutoHints.Count;
+        return true;
+    }
+
+    private void ResetAutoHintCycle()
+    {
+        ClearAutoHint();
+        ResetAutoHintTimer();
+        cachedAutoHints.Clear();
+        nextAutoHintIndex = 0;
+        isAutoHintCacheDirty = true;
+    }
+
+    private void HandleTilesMatched(TileView _, TileView __)
+    {
+        ResetAutoHintCycle();
+    }
+
+    private void HandleSwapPerformed()
+    {
+        ResetAutoHintCycle();
+    }
+
+    private static void ShuffleAutoHints(List<BoardMoveAnalyzer.HintResult> hints)
+    {
+        if (hints == null || hints.Count <= 1)
+        {
+            return;
+        }
+
+        for (int i = hints.Count - 1; i > 0; i--)
+        {
+            int swapIndex = UnityEngine.Random.Range(0, i + 1);
+            BoardMoveAnalyzer.HintResult temp = hints[i];
+            hints[i] = hints[swapIndex];
+            hints[swapIndex] = temp;
+        }
+    }
+
     public void ToggleAutoHint()
     {
         autoHintEnabled = !autoHintEnabled;
 
-        ClearAutoHint();
-        ResetAutoHintTimer();
+        ResetAutoHintCycle();
 
         Debug.Log($"Auto hint {(autoHintEnabled ? "enabled" : "disabled")}");
     }
@@ -201,12 +283,7 @@ public class BoardInteractionController : MonoBehaviour
     {
         autoHintEnabled = enabled;
 
-        if (!autoHintEnabled)
-        {
-            ClearAutoHint();
-        }
-
-        ResetAutoHintTimer();
+        ResetAutoHintCycle();
     }
 
     public void SetSuppressSameTypeEnlargement(bool suppress)
@@ -231,8 +308,7 @@ public class BoardInteractionController : MonoBehaviour
 
     private void HandleStableBoardStateChanged()
     {
-        ClearAutoHint();
-        ResetAutoHintTimer();
+        ResetAutoHintCycle();
 
         if (boardManager == null || boardManager.GetRemainingFaceUpTiles() <= 0)
         {

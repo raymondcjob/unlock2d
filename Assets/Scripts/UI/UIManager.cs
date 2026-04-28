@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
 using System;
@@ -18,7 +17,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private BoardInteractionController boardInteractionController;
     [SerializeField] private DragPreviewController dragPreviewController;
     [SerializeField] private ItemInventory itemInventory;
-    [SerializeField] private SaveGameManager saveGameManager;
+    [SerializeField] private GameManager gameManager;
 
     [Header("Menu Overlay")]
     [SerializeField] private GameObject menuOverlayRoot;
@@ -92,6 +91,7 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
+        EnsureGameManagerReference();
         SetMenuOverlayVisible(false);
         SetWinOverlayVisible(false);
         SetNoMatchPopupVisible(false);
@@ -124,7 +124,7 @@ public class UIManager : MonoBehaviour
         ClearBoardInteraction();
         PauseTimer();
         SetMenuOverlayVisible(true);
-        saveGameManager?.SaveGameIfAllowed();
+        gameManager?.SaveGameIfAllowed();
     }
 
     public void OnClickCloseMenu()
@@ -157,46 +157,26 @@ public class UIManager : MonoBehaviour
 
     public void OnClickMainMenu()
     {
-        saveGameManager?.SaveGameIfAllowed();
-        SetMenuOverlayVisible(false);
-        SetWinOverlayVisible(false);
-        SetNoMatchPopupVisible(false);
-        ClearBoardInteraction();
-
-        SceneManager.LoadScene(mainMenuSceneName);
+        EnsureGameManagerReference();
+        gameManager?.ReturnToMainMenu();
     }
 
     public void OnClickNewBoard()
     {
-        SetMenuOverlayVisible(false);
-        SetWinOverlayVisible(false);
-        SetNoMatchPopupVisible(false);
-        ClearBoardInteraction();
-
-        if (boardManager != null)
-        {
-            boardManager.GenerateNewBoard();
-        }
+        EnsureGameManagerReference();
+        gameManager?.StartNewBoard();
     }
 
     public void OnClickRestart()
     {
-        SetMenuOverlayVisible(false);
-        SetWinOverlayVisible(false);
-        SetNoMatchPopupVisible(false);
-        ClearBoardInteraction();
-
-        if (boardManager != null)
-        {
-            boardManager.ReplayCurrentBoard();
-        }
+        EnsureGameManagerReference();
+        gameManager?.RestartBoard();
     }
 
     public void OnClickStore()
     {
-        saveGameManager?.SaveGameIfAllowed();
-        Debug.Log("Store button clicked.");
-        // Later: open store overlay / panel
+        EnsureGameManagerReference();
+        gameManager?.OpenStore();
     }
 
     public void OnClickUndo()
@@ -371,13 +351,21 @@ public class UIManager : MonoBehaviour
 
     public void OnClickSettings()
     {
-        saveGameManager?.SaveGameIfAllowed();
+        EnsureGameManagerReference();
+        gameManager?.OpenSettingsScene();
+    }
+
+    public void PrepareForSceneTransition()
+    {
         SetMenuOverlayVisible(false);
         SetWinOverlayVisible(false);
         SetNoMatchPopupVisible(false);
         ClearBoardInteraction();
-        SettingsMenuManager.SetReturnScene(SceneManager.GetActiveScene().name);
-        SceneManager.LoadScene(settingsSceneName);
+    }
+
+    public void PrepareForBoardReset()
+    {
+        PrepareForSceneTransition();
     }
 
     public void OnClickCancelSelectionMode()
@@ -659,5 +647,13 @@ public class UIManager : MonoBehaviour
         isTimerRunning = savedIsRunning && !IsWinOverlayVisible();
         lastDisplayedSecond = -1;
         RefreshTimerText(forceRefresh: true);
+    }
+
+    private void EnsureGameManagerReference()
+    {
+        if (gameManager != null)
+        {
+            gameManager.InitializeIfNeeded(boardManager, itemInventory, this, mainMenuSceneName, settingsSceneName);
+        }
     }
 }

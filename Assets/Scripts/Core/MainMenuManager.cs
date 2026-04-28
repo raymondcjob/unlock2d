@@ -96,13 +96,13 @@ public class MainMenuManager : MonoBehaviour
     {
         ResetDebugUnlockSequence();
 
-        if (!SaveGameManager.HasSavedGameFile())
+        if (!GameManager.HasSavedGameFile())
         {
             Debug.Log("Continue ignored: no saved board found.");
             return;
         }
 
-        SaveGameManager.RequestLoadSavedGameOnNextGameScene();
+        GameManager.RequestLoadSavedGameOnNextGameScene();
         SceneManager.LoadScene(gameSceneName);
     }
 
@@ -110,7 +110,7 @@ public class MainMenuManager : MonoBehaviour
     {
         if (continueButtonStateView != null)
         {
-            continueButtonStateView.SetAvailable(SaveGameManager.HasSavedGameFile());
+            continueButtonStateView.SetAvailable(GameManager.HasSavedGameFile());
         }
     }
 
@@ -135,7 +135,7 @@ public class MainMenuManager : MonoBehaviour
 
     public void OnClickQuit()
     {
-        if (isDebugUnlockArmed && !SaveGameManager.HasSavedGameFile())
+        if (isDebugUnlockArmed && !GameManager.HasSavedGameFile())
         {
             DebugSettings.SetPersistentDebugMode(true);
             ResetDebugUnlockSequence();
@@ -155,7 +155,7 @@ public class MainMenuManager : MonoBehaviour
 
     public void OnDisabledContinueTapped()
     {
-        if (SaveGameManager.HasSavedGameFile())
+        if (GameManager.HasSavedGameFile())
         {
             ResetDebugUnlockSequence();
             return;

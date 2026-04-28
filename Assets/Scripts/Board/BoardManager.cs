@@ -113,7 +113,7 @@ public class BoardManager : MonoBehaviour
     {
         ApplyPendingNewGameBoardSize();
 
-        if (SaveGameManager.ShouldSkipBoardAutoGenerateOnSceneStart())
+        if (GameManager.ShouldSkipBoardAutoGenerateOnSceneStart())
         {
             return;
         }
