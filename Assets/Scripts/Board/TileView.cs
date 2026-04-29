@@ -50,6 +50,27 @@ public class TileView : MonoBehaviour
         ResetVisual();
     }
 
+    public void ApplyCellState(Sprite faceUpSprite, int tileTypeId, bool isPath, Sprite backTileSprite)
+    {
+        if (spriteRenderer == null)
+        {
+            spriteRenderer = GetComponent<SpriteRenderer>();
+        }
+
+        FaceUpSprite = faceUpSprite;
+        TileTypeId = tileTypeId;
+        IsPath = isPath;
+
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.sprite = isPath && backTileSprite != null
+                ? backTileSprite
+                : FaceUpSprite;
+        }
+
+        ResetVisual();
+    }
+
     public void ConvertToPath(Sprite backTileSprite)
     {
         IsPath = true;
@@ -111,11 +132,6 @@ public class TileView : MonoBehaviour
             spriteRenderer.sortingOrder = originalSortingOrder;
             spriteRenderer.color = originalColor;
         }
-    }
-
-    public Sprite GetCurrentSprite()
-    {
-        return spriteRenderer != null ? spriteRenderer.sprite : null;
     }
 
     public void SetGridPosition(Vector2Int gridPosition)

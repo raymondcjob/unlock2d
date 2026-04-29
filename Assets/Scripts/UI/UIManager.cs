@@ -4,8 +4,8 @@ using TMPro;
 using System;
 using System.Collections;
 
-public class UIManager : MonoBehaviour
-{
+  public class UIManager : MonoBehaviour
+  {
     public Func<bool> ShuffleOverride;
 
     [Header("Scene Names")]

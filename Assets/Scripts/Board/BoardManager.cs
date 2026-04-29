@@ -18,16 +18,7 @@ public class BoardManager : MonoBehaviour
     [SerializeField] private int boardWidth = 17;
     [SerializeField] private int boardHeight = 8;
     [SerializeField] private BoardSizePreset currentBoardSizePreset = BoardSizePreset.Large17x8;
-
-    [Header("Base Layout Tuning")]
-    [SerializeField] private float baseTileScale = 0.2f;
-    [SerializeField] private float TileSpacing8X = 0.64f;
-    [SerializeField] private float TileSpacing8Y = 0.86f;
-    [SerializeField] private int referenceBoardHeight = 8;
-
-    [Header("12x6 Layout Tuning")]
-    [SerializeField] private float TileSpacing6X = 0.85333335f;
-    [SerializeField] private float TileSpacing6Y = 1.1466666f;
+    [SerializeField] private BoardLayoutConfig boardLayoutConfig = BoardLayoutConfig.CreateDefault();
     private float tileSpacingX;
     private float tileSpacingY;
 
@@ -111,6 +102,7 @@ public class BoardManager : MonoBehaviour
 
     private void Start()
     {
+        EnsureBoardLayoutConfig();
         ApplyPendingNewGameBoardSize();
 
         if (GameManager.ShouldSkipBoardAutoGenerateOnSceneStart())
@@ -130,6 +122,7 @@ public class BoardManager : MonoBehaviour
 
     public void GenerateNewBoard()
     {
+        EnsureBoardLayoutConfig();
         ApplyBoardSizePreset(currentBoardSizePreset);
         int newSeed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
         GenerateBoardFromSeed(newSeed);
@@ -156,6 +149,7 @@ public class BoardManager : MonoBehaviour
 
     public void GenerateBoardFromSeed(int seed)
     {
+        EnsureBoardLayoutConfig();
         ApplyBoardSizePreset(currentBoardSizePreset);
         hasGeneratedBoard = true;
         currentSeed = FindNextValidSeed(seed);
@@ -932,16 +926,8 @@ public class BoardManager : MonoBehaviour
 
     private Vector2 GetWorldPosition(int x, int y)
     {
-        float boardWorldWidth = (boardWidth - 1) * tileSpacingX;
-        float boardWorldHeight = (boardHeight - 1) * tileSpacingY;
-
-        float startX = -boardWorldWidth / 2f;
-        float startY = boardWorldHeight / 2f;
-
-        return new Vector2(
-            startX + x * tileSpacingX,
-            startY - y * tileSpacingY
-        );
+        EnsureBoardLayoutConfig();
+        return boardLayoutConfig.GetWorldPosition(boardWidth, boardHeight, tileSpacingX, tileSpacingY, x, y);
     }
 
     private void ClearBoard()
@@ -961,32 +947,31 @@ public class BoardManager : MonoBehaviour
 
     private void CalculateSpacingFromPrefabScale()
     {
-        if (Mathf.Approximately(baseTileScale, 0f))
+        EnsureBoardLayoutConfig();
+
+        if (tilePrefab == null)
         {
-            Debug.LogError("Base tile scale cannot be 0.");
-            tileSpacingX = TileSpacing8X;
-            tileSpacingY = TileSpacing8Y;
+            Debug.LogError("Tile prefab is missing. Cannot calculate board spacing.");
+            tileSpacingX = 0f;
+            tileSpacingY = 0f;
             return;
         }
 
-        float currentScaleX = tilePrefab.transform.localScale.x;
-        float currentScaleY = tilePrefab.transform.localScale.y;
-        float scaleRatioX = currentScaleX / baseTileScale;
-        float scaleRatioY = currentScaleY / baseTileScale;
+        BoardLayoutConfig.BoardLayoutPreset currentPreset = GetCurrentLayoutPreset();
+        Vector2 spacing = boardLayoutConfig.CalculateSpacing(currentPreset, tilePrefab.transform.localScale);
 
-        float spacingBaseX = TileSpacing8X;
-        float spacingBaseY = TileSpacing8Y;
-
-        if (currentBoardSizePreset == BoardSizePreset.Small12x6)
+        if (currentPreset == null || spacing == Vector2.zero)
         {
-            spacingBaseX = TileSpacing6X;
-            spacingBaseY = TileSpacing6Y;
+            Debug.LogError("Board layout config is invalid. Cannot calculate board spacing.");
+            tileSpacingX = 0f;
+            tileSpacingY = 0f;
+            return;
         }
 
-        tileSpacingX = spacingBaseX * scaleRatioX;
-        tileSpacingY = spacingBaseY * scaleRatioY;
+        tileSpacingX = spacing.x;
+        tileSpacingY = spacing.y;
 
-        Debug.Log($"Board size: {boardWidth}x{boardHeight}, prefab scale: ({currentScaleX}, {currentScaleY}), spacing: ({tileSpacingX}, {tileSpacingY})");
+        Debug.Log($"Board size: {boardWidth}x{boardHeight}, prefab scale: ({tilePrefab.transform.localScale.x}, {tilePrefab.transform.localScale.y}), spacing: ({tileSpacingX}, {tileSpacingY})");
     }
 
     private void SelectRandomBoardSizePreset()
@@ -998,24 +983,25 @@ public class BoardManager : MonoBehaviour
 
     private void ApplyBoardSizePreset(BoardSizePreset preset)
     {
+        EnsureBoardLayoutConfig();
         currentBoardSizePreset = preset;
+        BoardLayoutConfig.BoardLayoutPreset layoutPreset;
 
         switch (preset)
         {
             case BoardSizePreset.Small12x6:
-                boardWidth = 12;
-                boardHeight = 6;
+                layoutPreset = boardLayoutConfig.Small12x6;
                 break;
             case BoardSizePreset.Medium14x8:
-                boardWidth = 14;
-                boardHeight = 8;
+                layoutPreset = boardLayoutConfig.Medium14x8;
                 break;
             case BoardSizePreset.Large17x8:
             default:
-                boardWidth = 17;
-                boardHeight = 8;
+                layoutPreset = boardLayoutConfig.Large17x8;
                 break;
         }
+
+        ApplyLayoutPreset(layoutPreset);
     }
 
     private bool TryApplyBoardSizePreset(int width, int height)
@@ -1121,9 +1107,45 @@ public class BoardManager : MonoBehaviour
 
     private float GetCurrentTileScaleMultiplier()
     {
-        int safeReferenceHeight = Mathf.Max(1, referenceBoardHeight);
+        EnsureBoardLayoutConfig();
+        int safeReferenceHeight = Mathf.Max(1, boardLayoutConfig.ReferenceBoardHeight);
         int safeBoardHeight = Mathf.Max(1, boardHeight);
         return (float)safeReferenceHeight / safeBoardHeight;
+    }
+
+    private void EnsureBoardLayoutConfig()
+    {
+        if (boardLayoutConfig == null)
+        {
+            boardLayoutConfig = BoardLayoutConfig.CreateDefault();
+        }
+    }
+
+    private void ApplyLayoutPreset(BoardLayoutConfig.BoardLayoutPreset preset)
+    {
+        if (preset == null)
+        {
+            return;
+        }
+
+        boardWidth = preset.Width;
+        boardHeight = preset.Height;
+    }
+
+    private BoardLayoutConfig.BoardLayoutPreset GetCurrentLayoutPreset()
+    {
+        EnsureBoardLayoutConfig();
+
+        switch (currentBoardSizePreset)
+        {
+            case BoardSizePreset.Small12x6:
+                return boardLayoutConfig.Small12x6;
+            case BoardSizePreset.Medium14x8:
+                return boardLayoutConfig.Medium14x8;
+            case BoardSizePreset.Large17x8:
+            default:
+                return boardLayoutConfig.Large17x8;
+        }
     }
 
     private void ApplyTileScale(TileView tile)
