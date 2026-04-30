@@ -505,7 +505,6 @@ public class BoardManager : MonoBehaviour
 
         remainingFaceUpTiles -= 2;
 
-        Debug.Log($"Matched: {tileA.name} with {tileB.name}");
         Debug.Log($"Remaining face-up tiles: {remainingFaceUpTiles}");
 
         CheckWinCondition();
@@ -971,7 +970,6 @@ public class BoardManager : MonoBehaviour
         tileSpacingX = spacing.x;
         tileSpacingY = spacing.y;
 
-        Debug.Log($"Board size: {boardWidth}x{boardHeight}, prefab scale: ({tilePrefab.transform.localScale.x}, {tilePrefab.transform.localScale.y}), spacing: ({tileSpacingX}, {tileSpacingY})");
     }
 
     private void SelectRandomBoardSizePreset()

@@ -98,13 +98,13 @@ public class BoardInteractionController : MonoBehaviour
             mainCamera = Camera.main;
         }
 
-        if (Input.touchCount > 1 && HasActiveInteraction())
+        if (GameInput.GetPressedTouchCount() > 1 && HasActiveInteraction())
         {
             ForceClearInteractionState();
             return;
         }
 
-        HandleMouseInput();
+        HandlePointerInput();
         TickAutoHint(Time.deltaTime);
     }
 
@@ -326,19 +326,19 @@ public class BoardInteractionController : MonoBehaviour
         }
     }
 
-    private void HandleMouseInput()
+    private void HandlePointerInput()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (GameInput.TryGetPointerDownPosition(out _))
         {
             OnPointerDown();
         }
 
-        if (Input.GetMouseButton(0) && isPointerHeld)
+        if (isPointerHeld && GameInput.TryGetPointerHeldPosition(out _))
         {
             OnPointerHeld();
         }
 
-        if (Input.GetMouseButtonUp(0) && isPointerHeld)
+        if (isPointerHeld && GameInput.TryGetPointerUpPosition(out _))
         {
             OnPointerUp();
         }
@@ -346,7 +346,7 @@ public class BoardInteractionController : MonoBehaviour
 
     private void OnPointerDown()
     {
-        if (Input.touchCount > 1)
+        if (GameInput.GetPressedTouchCount() > 1)
         {
             return;
         }
@@ -377,7 +377,7 @@ public class BoardInteractionController : MonoBehaviour
             return;
         }
 
-        Vector3 worldPosition = GetMouseWorldPosition();
+        Vector3 worldPosition = GetPointerWorldPosition();
         TileView clickedTile = GetTileUnderPointer(worldPosition);
 
         if (selectionMode != SelectionMode.None)
@@ -421,7 +421,7 @@ public class BoardInteractionController : MonoBehaviour
 
     private void OnPointerHeld()
     {
-        Vector3 currentWorldPosition = GetMouseWorldPosition();
+        Vector3 currentWorldPosition = GetPointerWorldPosition();
         Vector3 dragDelta = currentWorldPosition - pointerDownWorldPosition;
 
         if (!isDragging && dragDelta.magnitude >= dragThreshold)
@@ -927,9 +927,14 @@ public class BoardInteractionController : MonoBehaviour
         return hit.GetComponent<TileView>();
     }
 
-    private Vector3 GetMouseWorldPosition()
+    private Vector3 GetPointerWorldPosition()
     {
-        Vector3 screenPosition = Input.mousePosition;
+        if (!GameInput.TryGetCurrentPointerScreenPosition(out Vector2 pointerScreenPosition))
+        {
+            return Vector3.zero;
+        }
+
+        Vector3 screenPosition = pointerScreenPosition;
         screenPosition.z = Mathf.Abs(mainCamera.transform.position.z);
         Vector3 worldPosition = mainCamera.ScreenToWorldPoint(screenPosition);
         worldPosition.z = 0f;

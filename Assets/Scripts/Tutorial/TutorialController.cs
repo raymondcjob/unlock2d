@@ -119,70 +119,16 @@ public class TutorialController : MonoBehaviour
 
     private static bool TryGetPointerDownPosition(out Vector2 screenPosition)
     {
-        if (Input.touchCount > 0)
-        {
-            for (int i = 0; i < Input.touchCount; i++)
-            {
-                Touch touch = Input.GetTouch(i);
-                if (touch.phase == TouchPhase.Began)
-                {
-                    screenPosition = touch.position;
-                    return true;
-                }
-            }
-        }
-
-        if (Input.GetMouseButtonDown(0))
-        {
-            screenPosition = Input.mousePosition;
-            return true;
-        }
-
-        screenPosition = default;
-        return false;
+        return GameInput.TryGetPointerDownPosition(out screenPosition);
     }
 
     private static bool TryGetPointerHeldPosition(out Vector2 screenPosition)
     {
-        if (Input.touchCount > 0)
-        {
-            Touch touch = Input.GetTouch(0);
-            screenPosition = touch.position;
-            return touch.phase == TouchPhase.Moved || touch.phase == TouchPhase.Stationary;
-        }
-
-        if (Input.GetMouseButton(0))
-        {
-            screenPosition = Input.mousePosition;
-            return true;
-        }
-
-        screenPosition = default;
-        return false;
+        return GameInput.TryGetPointerHeldPosition(out screenPosition);
     }
 
     private static bool TryGetPointerUpPosition(out Vector2 screenPosition)
     {
-        if (Input.touchCount > 0)
-        {
-            for (int i = 0; i < Input.touchCount; i++)
-            {
-                Touch touch = Input.GetTouch(i);
-                if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
-                {
-                    screenPosition = touch.position;
-                    return true;
-                }
-            }
-        }
-
-        if (Input.GetMouseButtonUp(0))
-        {
-            screenPosition = Input.mousePosition;
-            return true;
-        }
-
-        screenPosition = default;
-        return false;
+        return GameInput.TryGetPointerUpPosition(out screenPosition);
     }
 }

@@ -94,7 +94,7 @@ public class SettingsMenuManager : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (GameInput.IsBackPressedThisFrame())
         {
             OnClickBack();
         }

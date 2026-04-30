@@ -107,7 +107,7 @@ using System.Collections;
     {
         UpdateTimer();
 
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (GameInput.IsBackPressedThisFrame())
         {
             HandleBackButton();
         }

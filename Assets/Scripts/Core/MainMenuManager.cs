@@ -60,7 +60,7 @@ public class MainMenuManager : MonoBehaviour
     {
         HandleBoardSizeSelectionOutsideClick();
 
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (GameInput.IsBackPressedThisFrame())
         {
             HandleBackButton();
         }
@@ -271,27 +271,7 @@ public class MainMenuManager : MonoBehaviour
 
     private static bool TryGetPointerDownScreenPosition(out Vector2 screenPosition)
     {
-        if (Input.touchCount > 0)
-        {
-            for (int i = 0; i < Input.touchCount; i++)
-            {
-                Touch touch = Input.GetTouch(i);
-                if (touch.phase == TouchPhase.Began)
-                {
-                    screenPosition = touch.position;
-                    return true;
-                }
-            }
-        }
-
-        if (Input.GetMouseButtonDown(0))
-        {
-            screenPosition = Input.mousePosition;
-            return true;
-        }
-
-        screenPosition = default;
-        return false;
+        return GameInput.TryGetPointerDownPosition(out screenPosition);
     }
 
     private void RefreshBoardSizeSelectionTexts()

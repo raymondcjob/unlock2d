@@ -329,27 +329,11 @@ public class TutorialManager : MonoBehaviour
 
     private static bool IsPointerPressedThisFrame()
     {
-        if (Input.touchCount > 0)
-        {
-            for (int i = 0; i < Input.touchCount; i++)
-            {
-                if (Input.GetTouch(i).phase == TouchPhase.Began)
-                {
-                    return true;
-                }
-            }
-        }
-
-        return Input.GetMouseButtonDown(0);
+        return GameInput.TryGetPointerDownPosition(out _);
     }
 
     private static bool IsPointerHeld()
     {
-        if (Input.touchCount > 0)
-        {
-            return true;
-        }
-
-        return Input.GetMouseButton(0);
+        return GameInput.TryGetPointerHeldPosition(out _);
     }
 }
