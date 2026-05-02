@@ -6,6 +6,7 @@ public class BoardInteractionController : MonoBehaviour
 {
     private const float TutorialClickEnlargementScale = 1.15f;
     private const string AutoHintEnabledKey = "settings.autoHintEnabled";
+    private const int AutoHintFlashCyclesBeforeAdvance = 4;
 
     public event Action InteractionVisualsCleared;
 
@@ -38,7 +39,6 @@ public class BoardInteractionController : MonoBehaviour
     [Header("Hint Settings")]
     [SerializeField] private bool autoHintEnabled = true;
     [SerializeField] private float autoHintDelaySeconds = 3f;
-    [SerializeField] private float autoHintScaleMultiplier = 1.15f;
 
     private readonly List<TileView> enlargedTiles = new List<TileView>();
     private readonly List<TileView> currentMatchChoices = new List<TileView>();
@@ -60,6 +60,11 @@ public class BoardInteractionController : MonoBehaviour
     private readonly List<BoardMoveAnalyzer.HintResult> cachedAutoHints = new List<BoardMoveAnalyzer.HintResult>();
     private int nextAutoHintIndex;
     private bool isAutoHintCacheDirty = true;
+    private BoardMoveAnalyzer.HintResult currentAutoHint;
+    private bool hasCurrentAutoHint;
+    private int currentAutoHintFlashCount;
+    private bool currentAutoHintDirectionTopLeftToBottomRight;
+    private TileView currentAutoHintTrackedTile;
 
 
     private SelectionMode selectionMode = SelectionMode.None;
@@ -155,31 +160,41 @@ public class BoardInteractionController : MonoBehaviour
 
         EnsureAutoHintCache();
 
-        if (TryGetNextAutoHint(out BoardMoveAnalyzer.HintResult hint))
+        if (TryGetCurrentOrNextAutoHint(out BoardMoveAnalyzer.HintResult hint))
         {
-            ApplyAutoHint(hint.SourceTile, hint.TargetTile);
+            ApplyAutoHint(hint);
         }
     }
 
-    private void ApplyAutoHint(TileView tileA, TileView tileB)
+    private void ApplyAutoHint(BoardMoveAnalyzer.HintResult hint)
     {
         ClearAutoHint();
+        TileView tileA = hint.SourceTile;
+        TileView tileB = hint.TargetTile;
 
         if (tileA != null)
         {
-            tileA.SetCustomScale(autoHintScaleMultiplier, 13);
+            tileA.PlayHintFlash(currentAutoHintDirectionTopLeftToBottomRight);
             autoHintTiles.Add(tileA);
         }
 
         if (tileB != null && tileB != tileA)
         {
-            tileB.SetCustomScale(autoHintScaleMultiplier, 13);
+            tileB.PlayHintFlash(currentAutoHintDirectionTopLeftToBottomRight);
             autoHintTiles.Add(tileB);
         }
+
+        TrackCurrentAutoHintTile(tileA != null ? tileA : tileB);
     }
 
     private void ClearAutoHint()
     {
+        if (currentAutoHintTrackedTile != null)
+        {
+            currentAutoHintTrackedTile.HintFlashCycleCompleted -= HandleAutoHintFlashCycleCompleted;
+            currentAutoHintTrackedTile = null;
+        }
+
         foreach (TileView tile in autoHintTiles)
         {
             if (tile != null)
@@ -235,6 +250,28 @@ public class BoardInteractionController : MonoBehaviour
         return true;
     }
 
+    private bool TryGetCurrentOrNextAutoHint(out BoardMoveAnalyzer.HintResult hint)
+    {
+        hint = default;
+
+        if (hasCurrentAutoHint && currentAutoHintFlashCount < AutoHintFlashCyclesBeforeAdvance)
+        {
+            hint = currentAutoHint;
+            return hint.SourceTile != null || hint.TargetTile != null;
+        }
+
+        if (!TryGetNextAutoHint(out hint))
+        {
+            return false;
+        }
+
+        hasCurrentAutoHint = true;
+        currentAutoHint = hint;
+        currentAutoHintFlashCount = 0;
+        currentAutoHintDirectionTopLeftToBottomRight = UnityEngine.Random.value >= 0.5f;
+        return true;
+    }
+
     private void ResetAutoHintCycle()
     {
         ClearAutoHint();
@@ -242,6 +279,10 @@ public class BoardInteractionController : MonoBehaviour
         cachedAutoHints.Clear();
         nextAutoHintIndex = 0;
         isAutoHintCacheDirty = true;
+        currentAutoHint = default;
+        hasCurrentAutoHint = false;
+        currentAutoHintFlashCount = 0;
+        currentAutoHintDirectionTopLeftToBottomRight = false;
     }
 
     private void HandleTilesMatched(TileView _, TileView __)
@@ -252,6 +293,38 @@ public class BoardInteractionController : MonoBehaviour
     private void HandleSwapPerformed()
     {
         ResetAutoHintCycle();
+    }
+
+    private void TrackCurrentAutoHintTile(TileView tile)
+    {
+        if (tile == null)
+        {
+            return;
+        }
+
+        currentAutoHintTrackedTile = tile;
+        currentAutoHintTrackedTile.HintFlashCycleCompleted += HandleAutoHintFlashCycleCompleted;
+    }
+
+    private void HandleAutoHintFlashCycleCompleted(TileView tile)
+    {
+        if (!hasCurrentAutoHint || tile != currentAutoHintTrackedTile)
+        {
+            return;
+        }
+
+        currentAutoHintFlashCount++;
+
+        if (currentAutoHintFlashCount < AutoHintFlashCyclesBeforeAdvance)
+        {
+            return;
+        }
+
+        hasCurrentAutoHint = false;
+        currentAutoHint = default;
+        currentAutoHintFlashCount = 0;
+        ClearAutoHint();
+        ResetAutoHintTimer();
     }
 
     private static void ShuffleAutoHints(List<BoardMoveAnalyzer.HintResult> hints)
