@@ -505,8 +505,6 @@ public class BoardManager : MonoBehaviour
 
         remainingFaceUpTiles -= 2;
 
-        Debug.Log($"Remaining face-up tiles: {remainingFaceUpTiles}");
-
         CheckWinCondition();
         OnStableBoardStateChanged?.Invoke();
     }
@@ -957,7 +955,7 @@ public class BoardManager : MonoBehaviour
         }
 
         BoardLayoutConfig.BoardLayoutPreset currentPreset = GetCurrentLayoutPreset();
-        Vector2 spacing = boardLayoutConfig.CalculateSpacing(currentPreset, tilePrefab.transform.localScale);
+        Vector2 spacing = boardLayoutConfig.CalculateSpacing(boardWidth, boardHeight, tilePrefab.transform.localScale);
 
         if (currentPreset == null || spacing == Vector2.zero)
         {
@@ -1106,9 +1104,7 @@ public class BoardManager : MonoBehaviour
     private float GetCurrentTileScaleMultiplier()
     {
         EnsureBoardLayoutConfig();
-        int safeReferenceHeight = Mathf.Max(1, boardLayoutConfig.ReferenceBoardHeight);
-        int safeBoardHeight = Mathf.Max(1, boardHeight);
-        return (float)safeReferenceHeight / safeBoardHeight;
+        return boardLayoutConfig.CalculateBoardScaleMultiplier(boardWidth, boardHeight);
     }
 
     private void EnsureBoardLayoutConfig()

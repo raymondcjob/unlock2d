@@ -773,8 +773,7 @@ public class TutorialBoardManager : MonoBehaviour
             return;
         }
 
-        BoardLayoutConfig.BoardLayoutPreset preset = boardLayoutConfig.Small12x6;
-        Vector2 spacing = boardLayoutConfig.CalculateSpacing(preset, tilePrefab.transform.localScale);
+        Vector2 spacing = boardLayoutConfig.CalculateSpacing(TutorialBoardWidth, TutorialBoardHeight, tilePrefab.transform.localScale);
         tileSpacingX = spacing.x;
         tileSpacingY = spacing.y;
     }
@@ -786,8 +785,7 @@ public class TutorialBoardManager : MonoBehaviour
             return;
         }
 
-        int safeReferenceHeight = Mathf.Max(1, boardLayoutConfig.ReferenceBoardHeight);
-        float scaleMultiplier = (float)safeReferenceHeight / TutorialBoardHeight;
+        float scaleMultiplier = boardLayoutConfig.CalculateBoardScaleMultiplier(TutorialBoardWidth, TutorialBoardHeight);
         tile.SetBaseScale(tilePrefab.transform.localScale * scaleMultiplier);
     }
 

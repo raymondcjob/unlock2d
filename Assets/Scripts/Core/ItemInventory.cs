@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class ItemInventory : MonoBehaviour
 {
+    private const int DebugModeItemCount = 99;
+
     [Header("References")]
     [SerializeField] private DebugSettings debugSettings;
 
@@ -14,6 +16,10 @@ public class ItemInventory : MonoBehaviour
     private int undoUses;
     private int shuffleUses;
     private int swapUses;
+    private int playerUndoUses;
+    private int playerShuffleUses;
+    private int playerSwapUses;
+    private bool lastRequestedDebugMode;
     private bool suppressDebugMode;
 
     public event Action OnInventoryChanged;
@@ -29,58 +35,72 @@ public class ItemInventory : MonoBehaviour
     private void Awake()
     {
         ResetForFreshBoard();
+        lastRequestedDebugMode = IsDebugModeRequested();
+        SyncDebugInventoryState(notifyListeners: false);
+    }
+
+    private void Update()
+    {
+        bool debugModeRequested = IsDebugModeRequested();
+        if (debugModeRequested == lastRequestedDebugMode)
+        {
+            return;
+        }
+
+        lastRequestedDebugMode = debugModeRequested;
+        SyncDebugInventoryState(notifyListeners: true);
     }
 
     public void ResetForFreshBoard()
     {
-        undoUses = Mathf.Max(0, startingUndoCount);
-        shuffleUses = Mathf.Max(0, startingShuffleCount);
-        swapUses = Mathf.Max(0, startingSwapCount);
-        OnInventoryChanged?.Invoke();
+        SetPlayerInventoryCounts(startingUndoCount, startingShuffleCount, startingSwapCount);
+        SyncDebugInventoryState(notifyListeners: true);
     }
 
     public bool HasUndoUseAvailable()
     {
-        return IsDebugModeEnabled() || undoUses > 0;
+        return undoUses > 0;
     }
 
     public bool HasShuffleUseAvailable()
     {
-        return IsDebugModeEnabled() || shuffleUses > 0;
+        return shuffleUses > 0;
     }
 
     public bool HasSwapUseAvailable()
     {
-        return IsDebugModeEnabled() || swapUses > 0;
+        return swapUses > 0;
     }
 
     public bool IsDebugModeEnabled()
     {
-        return !suppressDebugMode && debugSettings != null && debugSettings.DebugMode;
+        return IsDebugModeRequested();
     }
 
     public void SetRuntimeCounts(int undoCount, int shuffleCount, int swapCount, bool ignoreDebugMode = false)
     {
-        undoUses = Mathf.Max(0, undoCount);
-        shuffleUses = Mathf.Max(0, shuffleCount);
-        swapUses = Mathf.Max(0, swapCount);
         suppressDebugMode = ignoreDebugMode;
-        OnInventoryChanged?.Invoke();
+        SetPlayerInventoryCounts(undoCount, shuffleCount, swapCount);
+        lastRequestedDebugMode = IsDebugModeRequested();
+        SyncDebugInventoryState(notifyListeners: true);
     }
 
     public void ClearRuntimeDebugOverride()
     {
         suppressDebugMode = false;
-        OnInventoryChanged?.Invoke();
+        lastRequestedDebugMode = IsDebugModeRequested();
+        SyncDebugInventoryState(notifyListeners: true);
     }
 
     public void ConsumeUndoUse()
     {
-        if (!IsDebugModeEnabled() && undoUses > 0)
+        if (undoUses <= 0)
         {
-            undoUses--;
-            OnInventoryChanged?.Invoke();
+            return;
         }
+
+        undoUses--;
+        OnInventoryChanged?.Invoke();
     }
 
     public void AddUndoUses(int amount)
@@ -90,8 +110,8 @@ public class ItemInventory : MonoBehaviour
             return;
         }
 
-        undoUses += amount;
-        OnInventoryChanged?.Invoke();
+        playerUndoUses += amount;
+        SyncDebugInventoryState(notifyListeners: true);
     }
 
     public void AddShuffleUses(int amount)
@@ -101,8 +121,8 @@ public class ItemInventory : MonoBehaviour
             return;
         }
 
-        shuffleUses += amount;
-        OnInventoryChanged?.Invoke();
+        playerShuffleUses += amount;
+        SyncDebugInventoryState(notifyListeners: true);
     }
 
     public void AddSwapUses(int amount)
@@ -112,26 +132,30 @@ public class ItemInventory : MonoBehaviour
             return;
         }
 
-        swapUses += amount;
-        OnInventoryChanged?.Invoke();
+        playerSwapUses += amount;
+        SyncDebugInventoryState(notifyListeners: true);
     }
 
     public void ConsumeShuffleUse()
     {
-        if (!IsDebugModeEnabled() && shuffleUses > 0)
+        if (shuffleUses <= 0)
         {
-            shuffleUses--;
-            OnInventoryChanged?.Invoke();
+            return;
         }
+
+        shuffleUses--;
+        OnInventoryChanged?.Invoke();
     }
 
     public void ConsumeSwapUse()
     {
-        if (!IsDebugModeEnabled() && swapUses > 0)
+        if (swapUses <= 0)
         {
-            swapUses--;
-            OnInventoryChanged?.Invoke();
+            return;
         }
+
+        swapUses--;
+        OnInventoryChanged?.Invoke();
     }
 
     public string GetUndoDisplayText()
@@ -153,9 +177,9 @@ public class ItemInventory : MonoBehaviour
     {
         return new SaveData
         {
-            UndoUses = undoUses,
-            ShuffleUses = shuffleUses,
-            SwapUses = swapUses
+            UndoUses = playerUndoUses,
+            ShuffleUses = playerShuffleUses,
+            SwapUses = playerSwapUses
         };
     }
 
@@ -166,15 +190,49 @@ public class ItemInventory : MonoBehaviour
             return;
         }
 
-        undoUses = Mathf.Max(0, saveData.UndoUses);
-        shuffleUses = Mathf.Max(0, saveData.ShuffleUses);
-        swapUses = Mathf.Max(0, saveData.SwapUses);
-        OnInventoryChanged?.Invoke();
+        SetPlayerInventoryCounts(saveData.UndoUses, saveData.ShuffleUses, saveData.SwapUses);
+        lastRequestedDebugMode = IsDebugModeRequested();
+        SyncDebugInventoryState(notifyListeners: true);
     }
 
     private string GetDisplayText(int uses)
     {
-        return IsDebugModeEnabled() ? "/" : uses.ToString();
+        return uses.ToString();
+    }
+
+    private bool IsDebugModeRequested()
+    {
+        return !suppressDebugMode && debugSettings != null && debugSettings.DebugMode;
+    }
+
+    private void SetPlayerInventoryCounts(int undoCount, int shuffleCount, int swapCount)
+    {
+        playerUndoUses = Mathf.Max(0, undoCount);
+        playerShuffleUses = Mathf.Max(0, shuffleCount);
+        playerSwapUses = Mathf.Max(0, swapCount);
+    }
+
+    private void SyncDebugInventoryState(bool notifyListeners)
+    {
+        bool shouldUseDebugInventory = IsDebugModeRequested();
+
+        if (shouldUseDebugInventory)
+        {
+            undoUses = DebugModeItemCount;
+            shuffleUses = DebugModeItemCount;
+            swapUses = DebugModeItemCount;
+        }
+        else
+        {
+            undoUses = playerUndoUses;
+            shuffleUses = playerShuffleUses;
+            swapUses = playerSwapUses;
+        }
+
+        if (notifyListeners)
+        {
+            OnInventoryChanged?.Invoke();
+        }
     }
 
 }
