@@ -313,8 +313,8 @@ public class TutorialManager : MonoBehaviour
         {
             LocalizationManager.ApplyFont(guideBodyText);
             guideBodyText.fontStyle = LocalizationManager.CurrentLanguageCode == "zh-hk"
-                ? FontStyles.Bold
-                : FontStyles.Normal;
+                ? FontStyles.Bold | FontStyles.Italic
+                : FontStyles.Italic;
             guideBodyText.text = LocalizationManager.GetText(currentGuideBodyKey);
         }
     }

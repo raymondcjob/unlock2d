@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 
 public class TutorialBoardManager : MonoBehaviour
 {
-    private const float GuideHighlightScale = 1.1f;
-    private const float SameTypePreviewScale = 1.15f;
+    private const float GuideHighlightScale = 1.15f;
+    private const float SameTypePreviewScale = 1.2f;
 
     private const int TutorialBoardWidth = 12;
     private const int TutorialBoardHeight = 6;
@@ -53,6 +54,7 @@ public class TutorialBoardManager : MonoBehaviour
     private bool activeDragCompletesStep;
     private bool isSwapSelectionActive;
     private TileView selectedSwapTile;
+    private bool suppressGuideHighlights;
 
     public event Action<TutorialBoardFlowStep> FlowStepChanged;
 
@@ -67,7 +69,9 @@ public class TutorialBoardManager : MonoBehaviour
         BuildSnapshots();
         SpawnBoardObjects();
         ApplySnapshot(initialBoardSnapshot);
+        suppressGuideHighlights = true;
         SetCurrentFlowStep(TutorialBoardFlowStep.Step1);
+        StartCoroutine(ShowInitialGuideHighlightsAfterDelay());
     }
 
     public void ResetToInitial()
@@ -382,6 +386,11 @@ public class TutorialBoardManager : MonoBehaviour
 
     private void ReapplyGuideHighlights()
     {
+        if (suppressGuideHighlights)
+        {
+            return;
+        }
+
         for (int i = 0; i < guideTiles.Count; i++)
         {
             TileView tile = guideTiles[i];
@@ -395,6 +404,13 @@ public class TutorialBoardManager : MonoBehaviour
         {
             selectedSwapTile.SetCustomScale(SameTypePreviewScale, 30);
         }
+    }
+
+    private IEnumerator ShowInitialGuideHighlightsAfterDelay()
+    {
+        yield return new WaitForSeconds(2f);
+        suppressGuideHighlights = false;
+        ReapplyGuideHighlights();
     }
 
     private void ClearTransientVisuals()

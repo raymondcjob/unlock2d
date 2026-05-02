@@ -343,7 +343,7 @@ public class GameManager : MonoBehaviour
             Board = boardManager.CaptureSaveData(),
             Inventory = itemInventory.CaptureSaveData(),
             ElapsedSeconds = uiManager != null ? uiManager.GetElapsedSeconds() : 0f,
-            IsTimerRunning = uiManager != null && uiManager.IsTimerRunning()
+            IsTimerRunning = uiManager != null && uiManager.ShouldResumeTimerWhenGameplayReturns()
         };
     }
 

@@ -6,7 +6,7 @@ public class TileView : MonoBehaviour
     [SerializeField] private SpriteRenderer spriteRenderer;
 
     [Header("Visual Settings")]
-    [SerializeField] private float enlargedScaleMultiplier = 1.15f;
+    [SerializeField] private float enlargedScaleMultiplier = 1.2f;
     [SerializeField] private Color dragSourceTint = new Color(0.8f, 0.8f, 0.8f, 1f);
 
     private Vector3 originalScale;

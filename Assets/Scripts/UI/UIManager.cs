@@ -641,6 +641,11 @@ using System.Collections;
         return isTimerRunning;
     }
 
+    public bool ShouldResumeTimerWhenGameplayReturns()
+    {
+        return !IsWinOverlayVisible();
+    }
+
     public void RestoreTimerState(float savedElapsedSeconds, bool savedIsRunning)
     {
         elapsedSeconds = Mathf.Max(0f, savedElapsedSeconds);

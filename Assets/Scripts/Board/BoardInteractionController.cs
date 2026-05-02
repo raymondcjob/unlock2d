@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BoardInteractionController : MonoBehaviour
 {
-    private const float TutorialClickEnlargementScale = 1.15f;
+    private const float TutorialClickEnlargementScale = 1.2f;
     private const string AutoHintEnabledKey = "settings.autoHintEnabled";
 
     public event Action InteractionVisualsCleared;
@@ -553,7 +553,7 @@ public class BoardInteractionController : MonoBehaviour
         {
             ClearInteractionVisuals();
             selectedTileA = clickedTile;
-            clickedTile.SetCustomScale(1.15f, 12);
+            clickedTile.SetCustomScale(1.2f, 12);
             enlargedTiles.Add(clickedTile);
             Debug.Log($"Selection A: {clickedTile.name}");
             return;
@@ -709,7 +709,7 @@ public class BoardInteractionController : MonoBehaviour
 
         if (activeTile != null)
         {
-            activeTile.SetCustomScale(1.15f, 12);
+            activeTile.SetCustomScale(1.2f, 12);
             enlargedTiles.Add(activeTile);
         }
 
