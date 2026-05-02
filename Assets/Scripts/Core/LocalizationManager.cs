@@ -35,7 +35,7 @@ public static class LocalizationManager
                     { "gameMenu.match", "Match" },
                     { "gameMenu.cancel", "Cancel" },
                     { "howTo.step1.title", "Course 1" },
-                    { "howTo.step1.body", "Here is your magic course. The two tiles right next to each another is on fire.\nTap on either one to seal them." },
+                    { "howTo.step1.body", "Here is your magic course. The two tiles right next to each other is on fire.\nTap on either one to seal them." },
                     { "howTo.step2.title", "Course 2" },
                     { "howTo.step2.body", "The seals become a path and allow tiles to be sealed without blocking them.\nLet's seal the water now." },
                     { "howTo.step3.title", "Course 3" },

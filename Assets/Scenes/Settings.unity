@@ -1386,7 +1386,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -2143029595719430790, guid: 3c4f4722b68a9d14b96106f40312d838, type: 3}
+  m_Sprite: {fileID: -7364086354186554409, guid: ed25045ca55fbd8449fcdb2281df0fee, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1437,10 +1437,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 361232508}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -50}
-  m_SizeDelta: {x: -150, y: 200}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: 0, y: -100}
+  m_SizeDelta: {x: 300, y: 75}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &396686086
 MonoBehaviour:
@@ -1593,7 +1593,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 300, y: 75}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &444332495
 MonoBehaviour:
@@ -1608,8 +1608,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
   m_IgnoreLayout: 0
-  m_MinWidth: 300
-  m_MinHeight: 75
+  m_MinWidth: -1
+  m_MinHeight: -1
   m_PreferredWidth: 300
   m_PreferredHeight: 75
   m_FlexibleWidth: -1
@@ -2057,7 +2057,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 300, y: 75}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1181050081
 MonoBehaviour:
@@ -2154,8 +2154,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
   m_IgnoreLayout: 0
-  m_MinWidth: 300
-  m_MinHeight: 75
+  m_MinWidth: -1
+  m_MinHeight: -1
   m_PreferredWidth: 300
   m_PreferredHeight: 75
   m_FlexibleWidth: -1
@@ -2489,10 +2489,10 @@ RectTransform:
   - {fileID: 1181050080}
   m_Father: {fileID: 361232508}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0}
-  m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -100}
-  m_SizeDelta: {x: 300, y: -400}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 300, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1358921910
 MonoBehaviour:
@@ -2512,11 +2512,11 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 4
-  m_Spacing: 35
+  m_Spacing: 25
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 1
-  m_ChildControlWidth: 0
-  m_ChildControlHeight: 0
+  m_ChildControlWidth: 1
+  m_ChildControlHeight: 1
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
@@ -2816,6 +2816,7 @@ GameObject:
   - component: {fileID: 1557475028}
   - component: {fileID: 1557475027}
   - component: {fileID: 1557475026}
+  - component: {fileID: 1557475030}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -2908,6 +2909,52 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1557475030
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1557475025}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8dc0a3df0a654c94d9dcd223589e2f30, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  referenceResolution: {x: 1920, y: 1080}
+  autoFindTargets: 1
+  scaleTargetsEnabled: 1
+  autoPositionTargetNames: []
+  autoStretchOnlyTargetNames: []
+  autoWidthAndStretchTargetNames: []
+  autoSizeAndYPositionTargetNames: []
+  autoChildTextScaleParentNames: []
+  autoChildTextScaleExcludePaths: []
+  autoUniformScaleTargetNames: []
+  autoScreenRatioScaleTargetNames: []
+  autoPositionTargetPaths: []
+  autoStretchOnlyTargetPaths: []
+  autoYPositionOnlyTargetPaths:
+  - SettingsOverlays/SettingsPanel/Title
+  autoWidthAndStretchTargetPaths:
+  - SettingsOverlays/SettingsPanel
+  autoSizeAndLayoutSpacingTargetPaths:
+  - SettingsOverlays/SettingsPanel/Content
+  autoSizeAndYPositionTargetPaths: []
+  autoChildTextScaleParentPaths:
+  - SettingsOverlays/SettingsPanel/Content
+  autoDirectScaleTargetPaths:
+  - SettingsOverlays/SettingsPanel/Title
+  autoDirectScaleXOnlyTargetPaths: []
+  autoUniformScaleTargetPaths: []
+  autoScreenRatioScaleTargetPaths: []
+  positionTargets: []
+  stretchOnlyTargets: []
+  widthAndStretchTargets: []
+  sizeAndYPositionTargets: []
+  directScaleTargets: []
+  uniformScaleTargets: []
+  screenRatioScaleTargets: []
 --- !u!1 &1572074158
 GameObject:
   m_ObjectHideFlags: 0

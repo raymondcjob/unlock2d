@@ -23,6 +23,9 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] private TMP_Text swapCountText;
     [SerializeField] private string mainMenuSceneName = "MainMenu";
 
+    private UIButtonHintSweep undoHintSweep;
+    private UIButtonHintSweep shuffleHintSweep;
+    private UIButtonHintSweep swapHintSweep;
     private int undoCount;
     private int shuffleCount;
     private int swapCount;
@@ -47,8 +50,12 @@ public class TutorialManager : MonoBehaviour
         shuffleGranted = false;
         swapGranted = false;
         isWaitingForTutorialCompleteRelease = false;
+        undoHintSweep = GetOrAddHintSweep(undoButton);
+        shuffleHintSweep = GetOrAddHintSweep(shuffleButton);
+        swapHintSweep = GetOrAddHintSweep(swapButton);
 
         RefreshItemButtons();
+        StopAllItemButtonHints();
     }
 
     private void Update()
@@ -104,6 +111,8 @@ public class TutorialManager : MonoBehaviour
 
     private void HandleFlowStepChanged(TutorialBoardManager.TutorialBoardFlowStep flowStep)
     {
+        StopAllItemButtonHints();
+
         switch (flowStep)
         {
             case TutorialBoardManager.TutorialBoardFlowStep.StepUndo:
@@ -112,6 +121,7 @@ public class TutorialManager : MonoBehaviour
                     undoCount += 1;
                     undoGranted = true;
                 }
+                PlayItemButtonHint(undoHintSweep, true);
                 break;
 
             case TutorialBoardManager.TutorialBoardFlowStep.StepShuffle:
@@ -120,6 +130,7 @@ public class TutorialManager : MonoBehaviour
                     shuffleCount += 1;
                     shuffleGranted = true;
                 }
+                PlayItemButtonHint(shuffleHintSweep, false);
                 break;
 
             case TutorialBoardManager.TutorialBoardFlowStep.StepSwap:
@@ -128,6 +139,7 @@ public class TutorialManager : MonoBehaviour
                     swapCount += 1;
                     swapGranted = true;
                 }
+                PlayItemButtonHint(swapHintSweep, true);
                 break;
 
             case TutorialBoardManager.TutorialBoardFlowStep.TutorialCompleted:
@@ -180,6 +192,7 @@ public class TutorialManager : MonoBehaviour
             return;
         }
 
+        StopItemButtonHint(undoHintSweep);
         ConsumeUndoUse();
         tutorialBoardManager.ApplyUndoVisualToStep4();
     }
@@ -198,6 +211,7 @@ public class TutorialManager : MonoBehaviour
             return;
         }
 
+        StopItemButtonHint(shuffleHintSweep);
         ConsumeShuffleUse();
         tutorialBoardManager.ApplyShuffleSnapshot();
     }
@@ -216,6 +230,7 @@ public class TutorialManager : MonoBehaviour
             return;
         }
 
+        StopItemButtonHint(swapHintSweep);
         ConsumeSwapUse();
         tutorialBoardManager.BeginSwapSelection();
         SetGuideText("howTo.swapTiles.title", "howTo.swapTiles.body");
@@ -335,5 +350,44 @@ public class TutorialManager : MonoBehaviour
     private static bool IsPointerHeld()
     {
         return GameInput.TryGetPointerHeldPosition(out _);
+    }
+
+    private static UIButtonHintSweep GetOrAddHintSweep(Button button)
+    {
+        if (button == null)
+        {
+            return null;
+        }
+
+        UIButtonHintSweep hintSweep = button.GetComponent<UIButtonHintSweep>();
+        if (hintSweep == null)
+        {
+            hintSweep = button.gameObject.AddComponent<UIButtonHintSweep>();
+        }
+
+        return hintSweep;
+    }
+
+    private void StopAllItemButtonHints()
+    {
+        StopItemButtonHint(undoHintSweep);
+        StopItemButtonHint(shuffleHintSweep);
+        StopItemButtonHint(swapHintSweep);
+    }
+
+    private static void StopItemButtonHint(UIButtonHintSweep hintSweep)
+    {
+        if (hintSweep != null)
+        {
+            hintSweep.StopSweep();
+        }
+    }
+
+    private static void PlayItemButtonHint(UIButtonHintSweep hintSweep, bool topLeftToBottomRight)
+    {
+        if (hintSweep != null)
+        {
+            hintSweep.PlaySweep(topLeftToBottomRight);
+        }
     }
 }

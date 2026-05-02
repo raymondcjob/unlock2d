@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class TileView : MonoBehaviour
 {
-    private const string HintScanShaderName = "Custom/TileHintScan";
     private const string HintScanOverlayName = "HintScanOverlay";
     private const string MainTextureProperty = "_MainTex";
     private const string SweepProperty = "_Sweep";
@@ -11,6 +10,7 @@ public class TileView : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private SpriteRenderer spriteRenderer;
+    [SerializeField] private Material hintFlashMaterialTemplate;
 
     [Header("Visual Settings")]
     [SerializeField] private Color dragSourceTint = new Color(0.6f, 0.6f, 0.6f, 1f);
@@ -27,6 +27,7 @@ public class TileView : MonoBehaviour
     private Coroutine hintFlashCoroutine;
 
     public event Action<TileView> HintFlashCycleCompleted;
+    public float HintFlashSweepDuration => hintFlashSweepDuration;
 
     public Vector2Int GridPosition { get; private set; }
     public int TileTypeId { get; private set; }
@@ -129,6 +130,44 @@ public class TileView : MonoBehaviour
 
     public void PlayHintFlash(bool topLeftToBottomRight)
     {
+        StartHintFlash(topLeftToBottomRight, true);
+    }
+
+    public void PlayHintFlashOnce(bool topLeftToBottomRight)
+    {
+        StartHintFlash(topLeftToBottomRight, false);
+    }
+
+    public void SetHintFlashProgress(bool topLeftToBottomRight, float normalizedProgress)
+    {
+        EnsureHintFlashRenderer();
+
+        if (hintFlashRenderer == null || hintFlashMaterialInstance == null)
+        {
+            return;
+        }
+
+        if (hintFlashCoroutine != null)
+        {
+            StopCoroutine(hintFlashCoroutine);
+            hintFlashCoroutine = null;
+        }
+
+        hintFlashRenderer.transform.localPosition = Vector3.zero;
+        hintFlashRenderer.transform.localEulerAngles = Vector3.zero;
+        hintFlashRenderer.transform.localScale = Vector3.one;
+        hintFlashRenderer.enabled = true;
+        hintFlashMaterialInstance.SetFloat(ReverseProperty, topLeftToBottomRight ? 0f : 1f);
+        hintFlashMaterialInstance.SetFloat(SweepProperty, Mathf.Lerp(-0.5f, 2.5f, Mathf.Clamp01(normalizedProgress)));
+    }
+
+    public void HideHintFlash()
+    {
+        StopHintFlash();
+    }
+
+    private void StartHintFlash(bool topLeftToBottomRight, bool loop)
+    {
         EnsureHintFlashRenderer();
 
         if (hintFlashRenderer == null || hintFlashMaterialInstance == null)
@@ -142,7 +181,7 @@ public class TileView : MonoBehaviour
         }
 
         Debug.Log($"[TileView] Starting hint flash on {name}. Direction: {(topLeftToBottomRight ? "top-left to bottom-right" : "top-right to bottom-left")}");
-        hintFlashCoroutine = StartCoroutine(HintFlashLoop(topLeftToBottomRight));
+        hintFlashCoroutine = StartCoroutine(HintFlashLoop(topLeftToBottomRight, loop));
     }
 
     public void ResetVisual()
@@ -187,7 +226,7 @@ public class TileView : MonoBehaviour
         }
     }
 
-    private System.Collections.IEnumerator HintFlashLoop(bool topLeftToBottomRight)
+    private System.Collections.IEnumerator HintFlashLoop(bool topLeftToBottomRight, bool loop)
     {
         EnsureHintFlashRenderer();
 
@@ -201,7 +240,7 @@ public class TileView : MonoBehaviour
         hintFlashRenderer.transform.localScale = Vector3.one;
         hintFlashMaterialInstance.SetFloat(ReverseProperty, topLeftToBottomRight ? 0f : 1f);
 
-        while (true)
+        do
         {
             float elapsed = 0f;
             hintFlashRenderer.enabled = true;
@@ -217,8 +256,14 @@ public class TileView : MonoBehaviour
 
             hintFlashRenderer.enabled = false;
             HintFlashCycleCompleted?.Invoke(this);
-            yield return new WaitForSeconds(hintFlashPauseDuration);
+            if (loop)
+            {
+                yield return new WaitForSeconds(hintFlashPauseDuration);
+            }
         }
+        while (loop);
+
+        hintFlashCoroutine = null;
     }
 
     private void EnsureHintFlashRenderer()
@@ -240,15 +285,13 @@ public class TileView : MonoBehaviour
         hintFlashRenderer.color = hintFlashColor;
         hintFlashRenderer.enabled = false;
 
-        Shader hintScanShader = Shader.Find(HintScanShaderName);
-
-        if (hintScanShader == null)
+        if (hintFlashMaterialTemplate == null)
         {
-            Debug.LogWarning($"[TileView] Could not find shader '{HintScanShaderName}' for {name}.");
+            Debug.LogWarning($"[TileView] Hint flash material template is missing for {name}.");
             return;
         }
 
-        hintFlashMaterialInstance = new Material(hintScanShader)
+        hintFlashMaterialInstance = new Material(hintFlashMaterialTemplate)
         {
             name = $"{name}_HintScanMaterial"
         };

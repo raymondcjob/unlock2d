@@ -5,8 +5,9 @@ using UnityEngine;
 
 public class TutorialBoardManager : MonoBehaviour
 {
-    private const float GuideHighlightScale = 1.15f;
     private const float SameTypePreviewScale = 1.2f;
+    private const float GuideHintPauseSeconds = 0.8f;
+    private const float SwapTopRowGuideDelaySeconds = 0.2f;
 
     private const int TutorialBoardWidth = 12;
     private const int TutorialBoardHeight = 6;
@@ -55,6 +56,7 @@ public class TutorialBoardManager : MonoBehaviour
     private bool isSwapSelectionActive;
     private TileView selectedSwapTile;
     private bool suppressGuideHighlights;
+    private Coroutine guideHintCoroutine;
 
     public event Action<TutorialBoardFlowStep> FlowStepChanged;
 
@@ -190,6 +192,7 @@ public class TutorialBoardManager : MonoBehaviour
         }
 
         activeInteractionTile = tile;
+        SuspendGuideHighlightsForInteraction();
         ApplySameTypePreview(tile);
 
         if (IsDragStep())
@@ -386,24 +389,156 @@ public class TutorialBoardManager : MonoBehaviour
 
     private void ReapplyGuideHighlights()
     {
+        StopGuideHintLoop();
+
         if (suppressGuideHighlights)
         {
             return;
         }
+
+        List<TileView> tilesToFlash = new List<TileView>();
 
         for (int i = 0; i < guideTiles.Count; i++)
         {
             TileView tile = guideTiles[i];
             if (tile != null)
             {
-                tile.SetCustomScale(GuideHighlightScale, 20);
+                if (tile == activeInteractionTile ||
+                    tile == selectedSwapTile ||
+                    activeDragCloneSources.Contains(tile) ||
+                    sameTypePreviewTiles.Contains(tile))
+                {
+                    tile.ResetVisual();
+                    continue;
+                }
+
+                tilesToFlash.Add(tile);
             }
+        }
+
+        if (tilesToFlash.Count > 0)
+        {
+            guideHintCoroutine = StartCoroutine(GuideHintLoop(tilesToFlash, UseTopLeftToBottomRightGuideFlash()));
         }
 
         if (selectedSwapTile != null)
         {
             selectedSwapTile.SetCustomScale(SameTypePreviewScale, 30);
         }
+    }
+
+    private bool UseTopLeftToBottomRightGuideFlash()
+    {
+        return ((int)currentFlowStep % 2) == 0;
+    }
+
+    private static void StopGuideHighlightForTile(TileView tile)
+    {
+        if (tile == null)
+        {
+            return;
+        }
+
+        tile.ResetVisual();
+    }
+
+    private void SuspendGuideHighlightsForInteraction()
+    {
+        StopGuideHintLoop();
+
+        for (int i = 0; i < guideTiles.Count; i++)
+        {
+            StopGuideHighlightForTile(guideTiles[i]);
+        }
+    }
+
+    private IEnumerator GuideHintLoop(List<TileView> tilesToFlash, bool topLeftToBottomRight)
+    {
+        while (true)
+        {
+            float sweepDuration = 0f;
+
+            for (int i = 0; i < tilesToFlash.Count; i++)
+            {
+                TileView tile = tilesToFlash[i];
+                if (tile == null)
+                {
+                    continue;
+                }
+
+                sweepDuration = Mathf.Max(sweepDuration, tile.HintFlashSweepDuration);
+            }
+
+            if (sweepDuration <= 0f)
+            {
+                yield break;
+            }
+
+            float elapsed = 0f;
+
+            while (elapsed < sweepDuration)
+            {
+                elapsed += Time.deltaTime;
+
+                for (int i = 0; i < tilesToFlash.Count; i++)
+                {
+                    TileView tile = tilesToFlash[i];
+                    if (tile == null)
+                    {
+                        continue;
+                    }
+
+                    float tileDelay = GetGuideHintDelay(tile);
+                    if (elapsed < tileDelay)
+                    {
+                        tile.HideHintFlash();
+                        continue;
+                    }
+
+                    float normalizedProgress = Mathf.Clamp01((elapsed - tileDelay) / sweepDuration);
+                    tile.SetHintFlashProgress(topLeftToBottomRight, normalizedProgress);
+                }
+
+                yield return null;
+            }
+
+            for (int i = 0; i < tilesToFlash.Count; i++)
+            {
+                TileView tile = tilesToFlash[i];
+                if (tile == null)
+                {
+                    continue;
+                }
+
+                tile.HideHintFlash();
+            }
+
+            yield return new WaitForSeconds(GuideHintPauseSeconds);
+        }
+    }
+
+    private void StopGuideHintLoop()
+    {
+        if (guideHintCoroutine != null)
+        {
+            StopCoroutine(guideHintCoroutine);
+            guideHintCoroutine = null;
+        }
+    }
+
+    private float GetGuideHintDelay(TileView tile)
+    {
+        if (tile == null)
+        {
+            return 0f;
+        }
+
+        if (currentFlowStep == TutorialBoardFlowStep.StepSwap && tile.GridPosition.y == 0)
+        {
+            return SwapTopRowGuideDelaySeconds;
+        }
+
+        return 0f;
     }
 
     private IEnumerator ShowInitialGuideHighlightsAfterDelay()
@@ -474,6 +609,7 @@ public class TutorialBoardManager : MonoBehaviour
                 continue;
             }
 
+            StopGuideHighlightForTile(tile);
             tile.SetCustomScale(SameTypePreviewScale, 30);
             sameTypePreviewTiles.Add(tile);
         }
@@ -483,6 +619,11 @@ public class TutorialBoardManager : MonoBehaviour
     {
         activeDragCloneSources.Clear();
         PopulateDragCloneSources(sourceTile);
+
+        for (int i = 0; i < activeDragCloneSources.Count; i++)
+        {
+            StopGuideHighlightForTile(activeDragCloneSources[i]);
+        }
 
         for (int i = 0; i < activeDragCloneSources.Count; i++)
         {

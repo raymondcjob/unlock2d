@@ -6,8 +6,27 @@ public class FillBackgroundToCamera : MonoBehaviour
 {
     [SerializeField] private Camera targetCamera;
     [SerializeField] private bool fillScreen = true;
+    [SerializeField] private bool preserveAspect = false;
+    [SerializeField] private float worldZPosition = 0f;
+
+    private SpriteRenderer spriteRenderer;
+
+    private void Awake()
+    {
+        spriteRenderer = GetComponent<SpriteRenderer>();
+    }
+
+    private void OnEnable()
+    {
+        ApplyCameraFill();
+    }
 
     private void LateUpdate()
+    {
+        ApplyCameraFill();
+    }
+
+    private void ApplyCameraFill()
     {
         if (targetCamera == null)
         {
@@ -19,8 +38,12 @@ public class FillBackgroundToCamera : MonoBehaviour
             return;
         }
 
-        SpriteRenderer sr = GetComponent<SpriteRenderer>();
-        if (sr == null || sr.sprite == null)
+        if (spriteRenderer == null)
+        {
+            spriteRenderer = GetComponent<SpriteRenderer>();
+        }
+
+        if (spriteRenderer == null || spriteRenderer.sprite == null)
         {
             return;
         }
@@ -28,7 +51,7 @@ public class FillBackgroundToCamera : MonoBehaviour
         float worldScreenHeight = targetCamera.orthographicSize * 2f;
         float worldScreenWidth = worldScreenHeight * targetCamera.aspect;
 
-        Vector2 spriteSize = sr.sprite.bounds.size;
+        Vector2 spriteSize = spriteRenderer.sprite.bounds.size;
 
         if (spriteSize.x <= 0f || spriteSize.y <= 0f)
         {
@@ -38,16 +61,41 @@ public class FillBackgroundToCamera : MonoBehaviour
         float scaleX = worldScreenWidth / spriteSize.x;
         float scaleY = worldScreenHeight / spriteSize.y;
 
-        float scale = fillScreen
-            ? Mathf.Max(scaleX, scaleY)
-            : Mathf.Min(scaleX, scaleY);
+        Vector3 targetWorldScale;
+        if (preserveAspect)
+        {
+            float scale = fillScreen
+                ? Mathf.Max(scaleX, scaleY)
+                : Mathf.Min(scaleX, scaleY);
+            targetWorldScale = new Vector3(scale, scale, 1f);
+        }
+        else
+        {
+            targetWorldScale = new Vector3(scaleX, scaleY, 1f);
+        }
 
         transform.position = new Vector3(
             targetCamera.transform.position.x,
             targetCamera.transform.position.y,
-            0f
+            worldZPosition
         );
 
-        transform.localScale = new Vector3(scale, scale, 1f);
+        transform.localScale = GetLocalScaleForWorldScale(targetWorldScale);
+    }
+
+    private Vector3 GetLocalScaleForWorldScale(Vector3 targetWorldScale)
+    {
+        Transform parent = transform.parent;
+        if (parent == null)
+        {
+            return targetWorldScale;
+        }
+
+        Vector3 parentScale = parent.lossyScale;
+        return new Vector3(
+            parentScale.x != 0f ? targetWorldScale.x / parentScale.x : targetWorldScale.x,
+            parentScale.y != 0f ? targetWorldScale.y / parentScale.y : targetWorldScale.y,
+            1f
+        );
     }
 }

@@ -327,6 +327,19 @@ public class BoardInteractionController : MonoBehaviour
         ResetAutoHintTimer();
     }
 
+    private void AdvanceCurrentAutoHintToNext()
+    {
+        if (!hasCurrentAutoHint)
+        {
+            return;
+        }
+
+        hasCurrentAutoHint = false;
+        currentAutoHint = default;
+        currentAutoHintFlashCount = 0;
+        currentAutoHintDirectionTopLeftToBottomRight = false;
+    }
+
     private static void ShuffleAutoHints(List<BoardMoveAnalyzer.HintResult> hints)
     {
         if (hints == null || hints.Count <= 1)
@@ -442,6 +455,7 @@ public class BoardInteractionController : MonoBehaviour
 
         ClearAutoHint();
         ResetAutoHintTimer();
+        AdvanceCurrentAutoHintToNext();
 
         if (dismissedOverlay)
         {
