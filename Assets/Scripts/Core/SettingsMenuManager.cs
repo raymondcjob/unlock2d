@@ -40,6 +40,7 @@ public class SettingsMenuManager : MonoBehaviour
     private Color musicOriginalColor = Color.white;
     private Color soundOriginalColor = Color.white;
     private Color hintOriginalColor = Color.white;
+    private Color hintTextOriginalColor = Color.white;
     private bool musicMuted;
     private bool soundMuted;
     private bool autoHintEnabled;
@@ -71,6 +72,11 @@ public class SettingsMenuManager : MonoBehaviour
         if (hintButtonImage != null)
         {
             hintOriginalColor = hintButtonImage.color;
+        }
+
+        if (hintButtonText != null)
+        {
+            hintTextOriginalColor = hintButtonText.color;
         }
 
         musicMuted = PlayerPrefs.GetInt(MusicMutedKey, 0) == 1;
@@ -237,6 +243,11 @@ public class SettingsMenuManager : MonoBehaviour
         if (hintButtonImage != null)
         {
             hintButtonImage.color = autoHintEnabled ? hintOriginalColor : mutedColor;
+        }
+
+        if (hintButtonText != null)
+        {
+            hintButtonText.color = autoHintEnabled ? hintTextOriginalColor : mutedColor;
         }
     }
 

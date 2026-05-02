@@ -14,6 +14,7 @@ public class MainMenuManager : MonoBehaviour
 
     [Header("Buttons")]
     [SerializeField] private UIButtonStateView continueButtonStateView;
+    [SerializeField] private GameObject menuButtonsContainer;
 
     [Header("Board Size Selection")]
     [SerializeField] private GameObject boardSizeSelectionOverlay;
@@ -35,6 +36,7 @@ public class MainMenuManager : MonoBehaviour
 
     private void Awake()
     {
+        ResolveMenuButtonsContainer();
         ResolveBoardSizeSelectionReferences();
         WireBoardSizeSelectionButtons();
         SetBoardSizeSelectionVisible(false);
@@ -219,6 +221,31 @@ public class MainMenuManager : MonoBehaviour
         if (boardSizeSelectionOverlay != null)
         {
             boardSizeSelectionOverlay.SetActive(visible);
+        }
+
+        if (menuButtonsContainer != null)
+        {
+            menuButtonsContainer.SetActive(!visible);
+        }
+    }
+
+    private void ResolveMenuButtonsContainer()
+    {
+        if (menuButtonsContainer != null)
+        {
+            return;
+        }
+
+        GameObject menuContextObject = GameObject.Find("MenuContext");
+        if (menuContextObject == null)
+        {
+            return;
+        }
+
+        Transform buttonsTransform = menuContextObject.transform.Find("Buttons");
+        if (buttonsTransform != null)
+        {
+            menuButtonsContainer = buttonsTransform.gameObject;
         }
     }
 

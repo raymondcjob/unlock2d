@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BoardInteractionController : MonoBehaviour
 {
-    private const float TutorialClickEnlargementScale = 1.2f;
+    private const float TutorialClickEnlargementScale = 1.15f;
     private const string AutoHintEnabledKey = "settings.autoHintEnabled";
 
     public event Action InteractionVisualsCleared;

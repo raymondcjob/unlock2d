@@ -7,7 +7,7 @@ public class TileView : MonoBehaviour
 
     [Header("Visual Settings")]
     [SerializeField] private float enlargedScaleMultiplier = 1.2f;
-    [SerializeField] private Color dragSourceTint = new Color(0.8f, 0.8f, 0.8f, 1f);
+    [SerializeField] private Color dragSourceTint = new Color(0.6f, 0.6f, 0.6f, 1f);
 
     private Vector3 originalScale;
     private int originalSortingOrder;

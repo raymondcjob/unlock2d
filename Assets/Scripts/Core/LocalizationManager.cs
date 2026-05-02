@@ -16,7 +16,7 @@ public static class LocalizationManager
                 "en",
                 new Dictionary<string, string>
                 {
-                    { "game.title", "Lockpick" },
+                    { "game.title", "Magic Seal" },
                     { "main.continue", "Continue" },
                     { "main.newGame", "New Game" },
                     { "main.boardSizeTitle", "Board Difficulty" },
@@ -31,7 +31,7 @@ public static class LocalizationManager
                     { "gameMenu.restart", "Restart" },
                     { "gameMenu.mainMenu", "Main Menu" },
                     { "gameMenu.noMoves", "No further matches available" },
-                    { "gameMenu.winTitle", "You cleared it!" },
+                    { "gameMenu.winTitle", "You sealed it!" },
                     { "gameMenu.match", "Match" },
                     { "gameMenu.cancel", "Cancel" },
                     { "howTo.step1.title", "Course 1" },
@@ -57,7 +57,7 @@ public static class LocalizationManager
                     { "settings.themes", "Theme" },
                     { "settings.languages", "Languages" },
                     { "settings.languageTitle", "Languages" },
-                    { "settings.back", "Return / Close" }
+                    { "settings.back", "Return" }
                 }
             },
             {
