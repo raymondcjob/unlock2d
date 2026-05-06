@@ -14,10 +14,10 @@ public class MainMenuManager : MonoBehaviour
 
     [Header("Buttons")]
     [SerializeField] private UIButtonStateView continueButtonStateView;
-    [SerializeField] private GameObject menuButtonsContainer;
 
-    [Header("Board Size Selection")]
-    [SerializeField] private GameObject boardSizeSelectionOverlay;
+    [Header("Board Selection")]
+    [SerializeField] private GameObject mainMenu;
+    [SerializeField] private GameObject boardDifficulties;
 
     [Header("Back Button")]
     [SerializeField] private float backButtonDoubleTapWindowSeconds = 1.5f;
@@ -36,7 +36,6 @@ public class MainMenuManager : MonoBehaviour
 
     private void Awake()
     {
-        ResolveMenuButtonsContainer();
         ResolveBoardSizeSelectionReferences();
         WireBoardSizeSelectionButtons();
         SetBoardSizeSelectionVisible(false);
@@ -178,17 +177,17 @@ public class MainMenuManager : MonoBehaviour
         isDebugUnlockArmed = false;
     }
 
-    public void OnClickSelectTwoSuits()
+    public void OnClickSelectEasy()
     {
         StartNewGameWithBoardSize(12, 6);
     }
 
-    public void OnClickSelectRedDragon()
+    public void OnClickSelectNormal()
     {
         StartNewGameWithBoardSize(14, 8);
     }
 
-    public void OnClickSelectFullTiles()
+    public void OnClickSelectHard()
     {
         StartNewGameWithBoardSize(17, 8);
     }
@@ -213,63 +212,44 @@ public class MainMenuManager : MonoBehaviour
 
     private bool IsBoardSizeSelectionVisible()
     {
-        return boardSizeSelectionOverlay != null && boardSizeSelectionOverlay.activeSelf;
+        return boardDifficulties != null && boardDifficulties.activeSelf;
     }
 
     private void SetBoardSizeSelectionVisible(bool visible)
     {
-        if (boardSizeSelectionOverlay != null)
+        if (mainMenu != null)
         {
-            boardSizeSelectionOverlay.SetActive(visible);
+            mainMenu.SetActive(!visible);
         }
 
-        if (menuButtonsContainer != null)
+        if (boardDifficulties != null)
         {
-            menuButtonsContainer.SetActive(!visible);
-        }
-    }
-
-    private void ResolveMenuButtonsContainer()
-    {
-        if (menuButtonsContainer != null)
-        {
-            return;
-        }
-
-        GameObject menuContextObject = GameObject.Find("MenuContext");
-        if (menuContextObject == null)
-        {
-            return;
-        }
-
-        Transform buttonsTransform = menuContextObject.transform.Find("Buttons");
-        if (buttonsTransform != null)
-        {
-            menuButtonsContainer = buttonsTransform.gameObject;
+            boardDifficulties.SetActive(visible);
         }
     }
 
     private void ResolveBoardSizeSelectionReferences()
     {
-        if (boardSizeSelectionOverlay == null)
+        if (mainMenu == null)
         {
-            GameObject overlayObject = GameObject.Find("BoardSizeSelection");
-            if (overlayObject != null)
-            {
-                boardSizeSelectionOverlay = overlayObject;
-            }
+            mainMenu = GameObject.Find("MenuContent");
         }
 
-        if (boardSizeSelectionOverlay == null)
+        if (boardDifficulties == null)
+        {
+            boardDifficulties = GameObject.Find("BoardDifficulties");
+        }
+
+        if (boardDifficulties == null)
         {
             return;
         }
 
-        boardSizeTitleText = FindChildText(boardSizeSelectionOverlay.transform, "Title");
-        boardSizeSelectionRect = boardSizeSelectionOverlay.GetComponent<RectTransform>();
-        twoSuitsButton = FindChildButton(boardSizeSelectionOverlay.transform, "TwoSuits");
-        redDragonButton = FindChildButton(boardSizeSelectionOverlay.transform, "RedDragon");
-        fullTilesButton = FindChildButton(boardSizeSelectionOverlay.transform, "FullTiles");
+        boardSizeTitleText = FindChildText(boardDifficulties.transform, "DifficultyTitle");
+        boardSizeSelectionRect = boardDifficulties.GetComponent<RectTransform>();
+        twoSuitsButton = FindChildButton(boardDifficulties.transform, "Easy");
+        redDragonButton = FindChildButton(boardDifficulties.transform, "Normal");
+        fullTilesButton = FindChildButton(boardDifficulties.transform, "Hard");
         twoSuitsText = FindButtonText(twoSuitsButton);
         redDragonText = FindButtonText(redDragonButton);
         fullTilesText = FindButtonText(fullTilesButton);
@@ -277,9 +257,9 @@ public class MainMenuManager : MonoBehaviour
 
     private void WireBoardSizeSelectionButtons()
     {
-        AddBoardSizeButtonListener(twoSuitsButton, OnClickSelectTwoSuits);
-        AddBoardSizeButtonListener(redDragonButton, OnClickSelectRedDragon);
-        AddBoardSizeButtonListener(fullTilesButton, OnClickSelectFullTiles);
+        AddBoardSizeButtonListener(twoSuitsButton, OnClickSelectEasy);
+        AddBoardSizeButtonListener(redDragonButton, OnClickSelectNormal);
+        AddBoardSizeButtonListener(fullTilesButton, OnClickSelectHard);
     }
 
     private void HandleBoardSizeSelectionOutsideClick()
@@ -303,7 +283,7 @@ public class MainMenuManager : MonoBehaviour
 
     private void RefreshBoardSizeSelectionTexts()
     {
-        if (boardSizeSelectionOverlay == null)
+        if (boardDifficulties == null)
         {
             ResolveBoardSizeSelectionReferences();
         }

@@ -180,7 +180,6 @@ public class TileView : MonoBehaviour
             StopCoroutine(hintFlashCoroutine);
         }
 
-        Debug.Log($"[TileView] Starting hint flash on {name}. Direction: {(topLeftToBottomRight ? "top-left to bottom-right" : "top-right to bottom-left")}");
         hintFlashCoroutine = StartCoroutine(HintFlashLoop(topLeftToBottomRight, loop));
     }
 

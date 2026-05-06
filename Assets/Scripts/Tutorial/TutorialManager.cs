@@ -75,7 +75,7 @@ public class TutorialManager : MonoBehaviour
             return;
         }
 
-        if (IsPointerPressedThisFrame())
+        if (IsPointerReleasedThisFrame())
         {
             SceneManager.LoadScene(mainMenuSceneName);
         }
@@ -342,14 +342,14 @@ public class TutorialManager : MonoBehaviour
         }
     }
 
-    private static bool IsPointerPressedThisFrame()
-    {
-        return GameInput.TryGetPointerDownPosition(out _);
-    }
-
     private static bool IsPointerHeld()
     {
         return GameInput.TryGetPointerHeldPosition(out _);
+    }
+
+    private static bool IsPointerReleasedThisFrame()
+    {
+        return GameInput.TryGetPointerUpPosition(out _);
     }
 
     private static UIButtonHintSweep GetOrAddHintSweep(Button button)

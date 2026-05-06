@@ -132,6 +132,7 @@ GameObject:
   - component: {fileID: 92558500}
   - component: {fileID: 92558499}
   - component: {fileID: 92558502}
+  - component: {fileID: 92558503}
   m_Layer: 5
   m_Name: MenuButton
   m_TagString: Untagged
@@ -156,7 +157,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 125, y: 125}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &92558499
 MonoBehaviour:
@@ -272,6 +273,31 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &92558503
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 92558497}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d2c3e6f7a8b4c1db5e9f0213a6c8d4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Unlock2D.UI.CanvasUIScaler
+  baseResolution: {x: 2400, y: 1080}
+  scalePosX: 0
+  scalePosY: 0
+  scaleWidth: 0
+  scaleHeight: 0
+  scaleLeftAndRight: 0
+  scaleTopAndBottom: 0
+  scaleLocalScaleX: 1
+  scaleLocalScaleY: 1
+  useUniformScale: 1
+  scaleTextSize: 0
+  scaleLayoutSpacing: 0
+  logScaleFactors: 0
 --- !u!1 &98734355
 GameObject:
   m_ObjectHideFlags: 0
@@ -933,6 +959,7 @@ GameObject:
   m_Component:
   - component: {fileID: 212954571}
   - component: {fileID: 212954572}
+  - component: {fileID: 212954573}
   m_Layer: 5
   m_Name: Buttons
   m_TagString: Untagged
@@ -990,6 +1017,31 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &212954573
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 212954570}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d2c3e6f7a8b4c1db5e9f0213a6c8d4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Unlock2D.UI.CanvasUIScaler
+  baseResolution: {x: 2400, y: 1080}
+  scalePosX: 0
+  scalePosY: 1
+  scaleWidth: 1
+  scaleHeight: 1
+  scaleLeftAndRight: 0
+  scaleTopAndBottom: 0
+  scaleLocalScaleX: 0
+  scaleLocalScaleY: 0
+  useUniformScale: 0
+  scaleTextSize: 1
+  scaleLayoutSpacing: 1
+  logScaleFactors: 0
 --- !u!1 &219030155
 GameObject:
   m_ObjectHideFlags: 0
@@ -1078,7 +1130,6 @@ GameObject:
   - component: {fileID: 312903306}
   - component: {fileID: 312903305}
   - component: {fileID: 312903304}
-  - component: {fileID: 312903308}
   m_Layer: 5
   m_Name: Canvas (UI)
   m_TagString: Untagged
@@ -1170,70 +1221,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!114 &312903308
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 312903303}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8dc0a3df0a654c94d9dcd223589e2f30, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  referenceResolution: {x: 1920, y: 1080}
-  autoFindTargets: 1
-  scaleTargetsEnabled: 1
-  autoPositionTargetNames:
-  - LeftBar
-  - RightBar
-  autoStretchOnlyTargetNames:
-  - ItemBar
-  autoWidthAndStretchTargetNames: []
-  autoSizeAndYPositionTargetNames: []
-  autoChildTextScaleParentNames: []
-  autoChildTextScaleExcludePaths: []
-  autoUniformScaleTargetNames:
-  - MenuButton
-  - Undo
-  - Shuffle
-  - Swap
-  autoScreenRatioScaleTargetNames:
-  - Timer Panel
-  - TimerPanel
-  autoPositionTargetPaths:
-  - UIManager/DebugBar
-  autoStretchOnlyTargetPaths: []
-  autoXYPositionOnlyTargetPaths: []
-  autoYPositionOnlyTargetPaths: []
-  autoHorizontalStretchYPositionHeightTargetPaths: []
-  autoStretchOffsetsTargetPaths: []
-  autoWidthAndStretchTargetPaths:
-  - UIManager/MenuOverlay/Panel/Buttons
-  - UIManager/WinOverlay/Panel/Buttons
-  - UIManager/NoMatchesPopup/Panel
-  autoSizeAndLayoutSpacingTargetPaths: []
-  autoSizeAndYPositionTargetPaths:
-  - UIManager/MenuOverlay/Panel/MenuText
-  - UIManager/WinOverlay/Panel/WinText
-  autoChildTextScaleParentPaths:
-  - UIManager/MenuOverlay/Panel/Buttons
-  - UIManager/WinOverlay/Panel/Buttons
-  autoDirectScaleTargetPaths:
-  - UIManager/NoMatchesPopup/Panel/Text
-  autoDirectScaleXOnlyTargetPaths: []
-  autoUniformScaleTargetPaths: []
-  autoScreenRatioScaleTargetPaths:
-  - UIManager/DebugBar/Match
-  - UIManager/DebugBar/Cancel
-  positionTargets: []
-  stretchOnlyTargets: []
-  widthAndStretchTargets: []
-  sizeAndYPositionTargets: []
-  directScaleTargets: []
-  uniformScaleTargets: []
-  screenRatioScaleTargets: []
 --- !u!1 &312993552
 GameObject:
   m_ObjectHideFlags: 0
@@ -1431,6 +1418,7 @@ GameObject:
   - component: {fileID: 408855608}
   - component: {fileID: 408855607}
   - component: {fileID: 408855610}
+  - component: {fileID: 408855611}
   m_Layer: 5
   m_Name: Undo
   m_TagString: Untagged
@@ -1456,7 +1444,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 125, y: 125}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &408855607
 MonoBehaviour:
@@ -1573,6 +1561,31 @@ MonoBehaviour:
   spriteSwapTargets:
   - image: {fileID: 408855608}
     disabledSprite: {fileID: 4668318520572349970, guid: b947f4b4ced2d4b44acf201088ecd411, type: 3}
+--- !u!114 &408855611
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 408855605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d2c3e6f7a8b4c1db5e9f0213a6c8d4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Unlock2D.UI.CanvasUIScaler
+  baseResolution: {x: 2400, y: 1080}
+  scalePosX: 0
+  scalePosY: 0
+  scaleWidth: 0
+  scaleHeight: 0
+  scaleLeftAndRight: 0
+  scaleTopAndBottom: 0
+  scaleLocalScaleX: 1
+  scaleLocalScaleY: 1
+  useUniformScale: 1
+  scaleTextSize: 0
+  scaleLayoutSpacing: 0
+  logScaleFactors: 0
 --- !u!1 &466539575
 GameObject:
   m_ObjectHideFlags: 0
@@ -1702,8 +1715,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -12, y: -12}
-  m_SizeDelta: {x: 40, y: 40}
+  m_AnchoredPosition: {x: -15, y: -15}
+  m_SizeDelta: {x: 60, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &491812836
 MonoBehaviour:
@@ -1778,7 +1791,7 @@ MonoBehaviour:
   fallbackSpriteSize: {x: 32, y: 32}
   fixedSpriteWidth: 10
   fixedSpriteHeight: 20
-  sizeScale: 1
+  sizeScale: 1.5
   colonBaseWidth: 12
   colonScale: 1
   spacing: 0
@@ -1959,6 +1972,7 @@ GameObject:
   - component: {fileID: 533266666}
   - component: {fileID: 533266665}
   - component: {fileID: 533266664}
+  - component: {fileID: 533266667}
   m_Layer: 5
   m_Name: NoMatchesPopup
   m_TagString: Untagged
@@ -2024,6 +2038,31 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 75}
   m_SizeDelta: {x: -1000, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &533266667
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 533266663}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d2c3e6f7a8b4c1db5e9f0213a6c8d4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Unlock2D.UI.CanvasUIScaler
+  baseResolution: {x: 2400, y: 1080}
+  scalePosX: 0
+  scalePosY: 1
+  scaleWidth: 0
+  scaleHeight: 1
+  scaleLeftAndRight: 1
+  scaleTopAndBottom: 0
+  scaleLocalScaleX: 0
+  scaleLocalScaleY: 0
+  useUniformScale: 0
+  scaleTextSize: 1
+  scaleLayoutSpacing: 0
+  logScaleFactors: 0
 --- !u!1 &551646212
 GameObject:
   m_ObjectHideFlags: 0
@@ -2037,6 +2076,7 @@ GameObject:
   - component: {fileID: 551646215}
   - component: {fileID: 551646214}
   - component: {fileID: 551646217}
+  - component: {fileID: 551646218}
   m_Layer: 5
   m_Name: Swap
   m_TagString: Untagged
@@ -2062,7 +2102,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 125, y: 125}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &551646214
 MonoBehaviour:
@@ -2179,6 +2219,31 @@ MonoBehaviour:
   spriteSwapTargets:
   - image: {fileID: 551646215}
     disabledSprite: {fileID: 7660627284756719802, guid: ffc4a93a5de74bc40b85205ee5f2e1f5, type: 3}
+--- !u!114 &551646218
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 551646212}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d2c3e6f7a8b4c1db5e9f0213a6c8d4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Unlock2D.UI.CanvasUIScaler
+  baseResolution: {x: 2400, y: 1080}
+  scalePosX: 0
+  scalePosY: 0
+  scaleWidth: 0
+  scaleHeight: 0
+  scaleLeftAndRight: 0
+  scaleTopAndBottom: 0
+  scaleLocalScaleX: 1
+  scaleLocalScaleY: 1
+  useUniformScale: 1
+  scaleTextSize: 0
+  scaleLayoutSpacing: 0
+  logScaleFactors: 0
 --- !u!1 &600929064
 GameObject:
   m_ObjectHideFlags: 0
@@ -2215,7 +2280,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 200, y: -460}
+  m_AnchoredPosition: {x: 200, y: -595}
   m_SizeDelta: {x: 400, y: 110}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &600929066
@@ -2475,6 +2540,7 @@ GameObject:
   - component: {fileID: 617682762}
   - component: {fileID: 617682761}
   - component: {fileID: 617682763}
+  - component: {fileID: 617682764}
   m_Layer: 5
   m_Name: MenuText
   m_TagString: Untagged
@@ -2614,6 +2680,31 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   localizationKey: gameMenu.title
+--- !u!114 &617682764
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 617682759}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d2c3e6f7a8b4c1db5e9f0213a6c8d4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Unlock2D.UI.CanvasUIScaler
+  baseResolution: {x: 2400, y: 1080}
+  scalePosX: 0
+  scalePosY: 1
+  scaleWidth: 1
+  scaleHeight: 1
+  scaleLeftAndRight: 0
+  scaleTopAndBottom: 0
+  scaleLocalScaleX: 0
+  scaleLocalScaleY: 0
+  useUniformScale: 0
+  scaleTextSize: 1
+  scaleLayoutSpacing: 0
+  logScaleFactors: 0
 --- !u!1 &651948990
 GameObject:
   m_ObjectHideFlags: 0
@@ -2827,6 +2918,7 @@ GameObject:
   - component: {fileID: 713252160}
   - component: {fileID: 713252159}
   - component: {fileID: 713252162}
+  - component: {fileID: 713252163}
   m_Layer: 5
   m_Name: Shuffle
   m_TagString: Untagged
@@ -2852,7 +2944,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 125, y: 125}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &713252159
 MonoBehaviour:
@@ -2969,6 +3061,31 @@ MonoBehaviour:
   spriteSwapTargets:
   - image: {fileID: 713252160}
     disabledSprite: {fileID: 9121740553218614477, guid: aeccd2ac452e33846b9dbe89713a2751, type: 3}
+--- !u!114 &713252163
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 713252157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d2c3e6f7a8b4c1db5e9f0213a6c8d4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Unlock2D.UI.CanvasUIScaler
+  baseResolution: {x: 2400, y: 1080}
+  scalePosX: 0
+  scalePosY: 0
+  scaleWidth: 0
+  scaleHeight: 0
+  scaleLeftAndRight: 0
+  scaleTopAndBottom: 0
+  scaleLocalScaleX: 1
+  scaleLocalScaleY: 1
+  useUniformScale: 1
+  scaleTextSize: 0
+  scaleLayoutSpacing: 0
+  logScaleFactors: 0
 --- !u!1 &733944639
 GameObject:
   m_ObjectHideFlags: 0
@@ -3183,7 +3300,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.2958534, y: 1.0626993, z: 1}
+  m_LocalScale: {x: 1.1883541, y: 1.1890607, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1719935895}
@@ -3237,7 +3354,7 @@ SpriteRenderer:
   m_SortingLayer: 1
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 82643853259541866, guid: e37332129afc9b047a7601dd78d143fb, type: 3}
+  m_Sprite: {fileID: -6311352213680616822, guid: 8198b6a38410081479ce4f06ce07621a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -3273,6 +3390,7 @@ GameObject:
   m_Component:
   - component: {fileID: 789053104}
   - component: {fileID: 789053105}
+  - component: {fileID: 789053106}
   m_Layer: 5
   m_Name: ItemBar
   m_TagString: Untagged
@@ -3299,8 +3417,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: 125}
-  m_SizeDelta: {x: 100, y: -250}
+  m_AnchoredPosition: {x: 0, y: 100}
+  m_SizeDelta: {x: 150, y: -200}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &789053105
 MonoBehaviour:
@@ -3328,6 +3446,31 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &789053106
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 789053103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d2c3e6f7a8b4c1db5e9f0213a6c8d4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Unlock2D.UI.CanvasUIScaler
+  baseResolution: {x: 2400, y: 1080}
+  scalePosX: 0
+  scalePosY: 0
+  scaleWidth: 0
+  scaleHeight: 0
+  scaleLeftAndRight: 0
+  scaleTopAndBottom: 1
+  scaleLocalScaleX: 0
+  scaleLocalScaleY: 0
+  useUniformScale: 0
+  scaleTextSize: 0
+  scaleLayoutSpacing: 0
+  logScaleFactors: 0
 --- !u!1 &796223152
 GameObject:
   m_ObjectHideFlags: 0
@@ -3419,6 +3562,7 @@ GameObject:
   - component: {fileID: 818412185}
   - component: {fileID: 818412184}
   - component: {fileID: 818412186}
+  - component: {fileID: 818412187}
   m_Layer: 5
   m_Name: WinText
   m_TagString: Untagged
@@ -3558,6 +3702,31 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   localizationKey: gameMenu.winTitle
+--- !u!114 &818412187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 818412182}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d2c3e6f7a8b4c1db5e9f0213a6c8d4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Unlock2D.UI.CanvasUIScaler
+  baseResolution: {x: 2400, y: 1080}
+  scalePosX: 0
+  scalePosY: 1
+  scaleWidth: 1
+  scaleHeight: 1
+  scaleLeftAndRight: 0
+  scaleTopAndBottom: 0
+  scaleLocalScaleX: 0
+  scaleLocalScaleY: 0
+  useUniformScale: 0
+  scaleTextSize: 1
+  scaleLayoutSpacing: 0
+  logScaleFactors: 0
 --- !u!1 &822235948
 GameObject:
   m_ObjectHideFlags: 0
@@ -3796,6 +3965,7 @@ GameObject:
   - component: {fileID: 853020033}
   - component: {fileID: 853020032}
   - component: {fileID: 853020031}
+  - component: {fileID: 853020034}
   m_Layer: 5
   m_Name: Cancel
   m_TagString: Untagged
@@ -3820,8 +3990,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 75, y: -187.5}
-  m_SizeDelta: {x: 100, y: 75}
+  m_AnchoredPosition: {x: 75, y: -177.5}
+  m_SizeDelta: {x: 150, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &853020031
 MonoBehaviour:
@@ -3917,6 +4087,31 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 853020029}
   m_CullTransparentMesh: 1
+--- !u!114 &853020034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 853020029}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d2c3e6f7a8b4c1db5e9f0213a6c8d4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Unlock2D.UI.CanvasUIScaler
+  baseResolution: {x: 2400, y: 1080}
+  scalePosX: 0
+  scalePosY: 0
+  scaleWidth: 0
+  scaleHeight: 0
+  scaleLeftAndRight: 0
+  scaleTopAndBottom: 0
+  scaleLocalScaleX: 1
+  scaleLocalScaleY: 1
+  useUniformScale: 0
+  scaleTextSize: 0
+  scaleLayoutSpacing: 0
+  logScaleFactors: 0
 --- !u!1 &936484175
 GameObject:
   m_ObjectHideFlags: 0
@@ -4174,8 +4369,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Match
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: e2b12918fcc81424788ce0a0ba0c7f15, type: 2}
+  m_sharedMaterial: {fileID: 3294710826983614972, guid: e2b12918fcc81424788ce0a0ba0c7f15, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -4350,6 +4545,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1176439419}
+  - component: {fileID: 1176439420}
   m_Layer: 5
   m_Name: LeftBar
   m_TagString: Untagged
@@ -4374,9 +4570,34 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 169, y: 0}
+  m_AnchoredPosition: {x: 150, y: 0}
   m_SizeDelta: {x: 175, y: -338}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1176439420
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1176439418}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d2c3e6f7a8b4c1db5e9f0213a6c8d4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Unlock2D.UI.CanvasUIScaler
+  baseResolution: {x: 2400, y: 1080}
+  scalePosX: 1
+  scalePosY: 0
+  scaleWidth: 0
+  scaleHeight: 0
+  scaleLeftAndRight: 0
+  scaleTopAndBottom: 1
+  scaleLocalScaleX: 0
+  scaleLocalScaleY: 0
+  useUniformScale: 0
+  scaleTextSize: 0
+  scaleLayoutSpacing: 0
+  logScaleFactors: 0
 --- !u!1 &1201505733
 GameObject:
   m_ObjectHideFlags: 0
@@ -4490,8 +4711,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -12, y: -12}
-  m_SizeDelta: {x: 40, y: 40}
+  m_AnchoredPosition: {x: -15, y: -15}
+  m_SizeDelta: {x: 60, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1252034323
 MonoBehaviour:
@@ -4566,7 +4787,7 @@ MonoBehaviour:
   fallbackSpriteSize: {x: 32, y: 32}
   fixedSpriteWidth: 10
   fixedSpriteHeight: 20
-  sizeScale: 1
+  sizeScale: 1.5
   colonBaseWidth: 12
   colonScale: 1
   spacing: 0
@@ -4805,6 +5026,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1400191954}
   - component: {fileID: 1400191955}
+  - component: {fileID: 1400191956}
   m_Layer: 5
   m_Name: DebugBar
   m_TagString: Untagged
@@ -4851,7 +5073,7 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 4
-  m_Spacing: 50
+  m_Spacing: 25
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 0
@@ -4859,6 +5081,31 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &1400191956
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1400191953}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d2c3e6f7a8b4c1db5e9f0213a6c8d4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Unlock2D.UI.CanvasUIScaler
+  baseResolution: {x: 2400, y: 1080}
+  scalePosX: 1
+  scalePosY: 0
+  scaleWidth: 1
+  scaleHeight: 1
+  scaleLeftAndRight: 0
+  scaleTopAndBottom: 0
+  scaleLocalScaleX: 0
+  scaleLocalScaleY: 0
+  useUniformScale: 0
+  scaleTextSize: 0
+  scaleLayoutSpacing: 0
+  logScaleFactors: 0
 --- !u!1 &1403206217
 GameObject:
   m_ObjectHideFlags: 0
@@ -4894,7 +5141,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 22.5, y: 45}
+  m_SizeDelta: {x: 25, y: 50}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &1403206219
 MonoBehaviour:
@@ -4947,6 +5194,7 @@ GameObject:
   - component: {fileID: 1417208198}
   - component: {fileID: 1417208200}
   - component: {fileID: 1417208202}
+  - component: {fileID: 1417208203}
   m_Layer: 5
   m_Name: TimerPanel
   m_TagString: Untagged
@@ -4977,7 +5225,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 80}
+  m_SizeDelta: {x: 0, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1417208198
 MonoBehaviour:
@@ -5052,7 +5300,7 @@ MonoBehaviour:
   fallbackSpriteSize: {x: 32, y: 32}
   fixedSpriteWidth: 10
   fixedSpriteHeight: 20
-  sizeScale: 2.25
+  sizeScale: 2.5
   colonBaseWidth: 12
   colonScale: 1
   spacing: 0
@@ -5085,6 +5333,31 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &1417208203
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1417208196}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d2c3e6f7a8b4c1db5e9f0213a6c8d4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Unlock2D.UI.CanvasUIScaler
+  baseResolution: {x: 2400, y: 1080}
+  scalePosX: 0
+  scalePosY: 0
+  scaleWidth: 0
+  scaleHeight: 0
+  scaleLeftAndRight: 0
+  scaleTopAndBottom: 0
+  scaleLocalScaleX: 1
+  scaleLocalScaleY: 1
+  useUniformScale: 0
+  scaleTextSize: 0
+  scaleLayoutSpacing: 0
+  logScaleFactors: 0
 --- !u!1 &1510342646
 GameObject:
   m_ObjectHideFlags: 0
@@ -5172,6 +5445,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1522846034}
   - component: {fileID: 1522846035}
+  - component: {fileID: 1522846036}
   m_Layer: 5
   m_Name: Buttons
   m_TagString: Untagged
@@ -5227,6 +5501,31 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &1522846036
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1522846033}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d2c3e6f7a8b4c1db5e9f0213a6c8d4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Unlock2D.UI.CanvasUIScaler
+  baseResolution: {x: 2400, y: 1080}
+  scalePosX: 0
+  scalePosY: 1
+  scaleWidth: 1
+  scaleHeight: 1
+  scaleLeftAndRight: 0
+  scaleTopAndBottom: 0
+  scaleLocalScaleX: 0
+  scaleLocalScaleY: 0
+  useUniformScale: 0
+  scaleTextSize: 1
+  scaleLayoutSpacing: 1
+  logScaleFactors: 0
 --- !u!1 &1562327442
 GameObject:
   m_ObjectHideFlags: 0
@@ -5576,7 +5875,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 200, y: -595}
+  m_AnchoredPosition: {x: 200, y: -460}
   m_SizeDelta: {x: 400, y: 110}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1659019343
@@ -5682,6 +5981,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1712657690}
+  - component: {fileID: 1712657691}
   m_Layer: 5
   m_Name: RightBar
   m_TagString: Untagged
@@ -5707,9 +6007,34 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -167, y: 0}
-  m_SizeDelta: {x: 100, y: -338}
+  m_AnchoredPosition: {x: -150, y: 0}
+  m_SizeDelta: {x: 150, y: -300}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1712657691
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1712657689}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d2c3e6f7a8b4c1db5e9f0213a6c8d4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Unlock2D.UI.CanvasUIScaler
+  baseResolution: {x: 2400, y: 1080}
+  scalePosX: 1
+  scalePosY: 0
+  scaleWidth: 0
+  scaleHeight: 0
+  scaleLeftAndRight: 0
+  scaleTopAndBottom: 1
+  scaleLocalScaleX: 0
+  scaleLocalScaleY: 0
+  useUniformScale: 0
+  scaleTextSize: 0
+  scaleLayoutSpacing: 0
+  logScaleFactors: 0
 --- !u!1 &1719935894
 GameObject:
   m_ObjectHideFlags: 0
@@ -5806,8 +6131,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Cancel
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: e2b12918fcc81424788ce0a0ba0c7f15, type: 2}
+  m_sharedMaterial: {fileID: 3294710826983614972, guid: e2b12918fcc81424788ce0a0ba0c7f15, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -6042,6 +6367,7 @@ GameObject:
   - component: {fileID: 1864442118}
   - component: {fileID: 1864442117}
   - component: {fileID: 1864442116}
+  - component: {fileID: 1864442119}
   m_Layer: 5
   m_Name: Match
   m_TagString: Untagged
@@ -6066,8 +6392,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 75, y: -62.5}
-  m_SizeDelta: {x: 100, y: 75}
+  m_AnchoredPosition: {x: 75, y: -72.5}
+  m_SizeDelta: {x: 150, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1864442116
 MonoBehaviour:
@@ -6163,6 +6489,31 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1864442114}
   m_CullTransparentMesh: 1
+--- !u!114 &1864442119
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1864442114}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d2c3e6f7a8b4c1db5e9f0213a6c8d4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Unlock2D.UI.CanvasUIScaler
+  baseResolution: {x: 2400, y: 1080}
+  scalePosX: 0
+  scalePosY: 0
+  scaleWidth: 0
+  scaleHeight: 0
+  scaleLeftAndRight: 0
+  scaleTopAndBottom: 0
+  scaleLocalScaleX: 1
+  scaleLocalScaleY: 1
+  useUniformScale: 0
+  scaleTextSize: 0
+  scaleLayoutSpacing: 0
+  logScaleFactors: 0
 --- !u!1 &1897750473
 GameObject:
   m_ObjectHideFlags: 0
@@ -6349,7 +6700,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 22.5, y: 45}
+  m_SizeDelta: {x: 25, y: 50}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &1929956213
 MonoBehaviour:
@@ -6651,7 +7002,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 22.5, y: 45}
+  m_SizeDelta: {x: 25, y: 50}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &2086438094
 MonoBehaviour:
@@ -6805,8 +7156,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -12, y: -12}
-  m_SizeDelta: {x: 40, y: 40}
+  m_AnchoredPosition: {x: -15, y: -15}
+  m_SizeDelta: {x: 60, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2096522073
 MonoBehaviour:
@@ -6881,7 +7232,7 @@ MonoBehaviour:
   fallbackSpriteSize: {x: 32, y: 32}
   fixedSpriteWidth: 10
   fixedSpriteHeight: 20
-  sizeScale: 1
+  sizeScale: 1.5
   colonBaseWidth: 12
   colonScale: 1
   spacing: 0
@@ -6949,7 +7300,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 22.5, y: 45}
+  m_SizeDelta: {x: 25, y: 50}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &2141827160
 MonoBehaviour:

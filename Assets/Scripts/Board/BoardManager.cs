@@ -103,12 +103,13 @@ public class BoardManager : MonoBehaviour
     private void Start()
     {
         EnsureBoardLayoutConfig();
-        ApplyPendingNewGameBoardSize();
 
         if (GameManager.ShouldSkipBoardAutoGenerateOnSceneStart())
         {
             return;
         }
+
+        ApplyPendingNewGameBoardSize();
 
         if (generateRandomSeedOnStart)
         {

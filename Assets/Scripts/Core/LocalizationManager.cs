@@ -19,7 +19,7 @@ public static class LocalizationManager
                     { "game.title", "Magic Seal" },
                     { "main.continue", "Continue" },
                     { "main.newGame", "New Game" },
-                    { "main.boardSizeTitle", "Board Difficulty" },
+                    { "main.boardSizeTitle", "Difficulties" },
                     { "main.boardSize.twoSuits", "Easy" },
                     { "main.boardSize.redDragon", "Normal" },
                     { "main.boardSize.fullTiles", "Hard" },

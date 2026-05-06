@@ -436,7 +436,6 @@ using System.Collections;
 
     private void HandleBoardWon(int seed)
     {
-        Debug.Log($"Showing win popup for seed: {seed}");
         isTimerRunning = false;
         SetMenuOverlayVisible(false);
         SetNoMatchPopupVisible(false);
