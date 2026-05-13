@@ -457,6 +457,8 @@ using System.Collections;
 
     private void SetMenuOverlayVisible(bool visible)
     {
+        boardManager?.SetTileContainerVisible(!visible);
+
         if (menuOverlayRoot != null)
         {
             menuOverlayRoot.SetActive(visible);

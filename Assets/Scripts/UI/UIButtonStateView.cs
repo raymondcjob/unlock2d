@@ -4,24 +4,15 @@ using TMPro;
 
 public class UIButtonStateView : MonoBehaviour
 {
-    [System.Serializable]
-    private struct SpriteSwapTarget
-    {
-        public Image image;
-        public Sprite disabledSprite;
-    }
-
     [SerializeField] private Button button;
     [SerializeField] private bool includeChildGraphics;
     [SerializeField] private bool tintTextGraphics;
     [SerializeField] private bool tintGraphicsWhenDisabled = true;
     [SerializeField] private Color disabledColor = new Color(0.7f, 0.7f, 0.7f, 1f);
     [SerializeField] private Graphic[] targetGraphics;
-    [SerializeField] private SpriteSwapTarget[] spriteSwapTargets;
 
     private ColorBlock originalButtonColors;
     private Color[] originalGraphicColors;
-    private Sprite[] originalSprites;
     private bool hasResolvedReferences;
 
     private void Awake()
@@ -65,20 +56,6 @@ public class UIButtonStateView : MonoBehaviour
                 ? originalGraphicColors[i]
                 : GetOpaqueDisabledColor(originalGraphicColors[i]);
         }
-
-        for (int i = 0; i < spriteSwapTargets.Length; i++)
-        {
-            SpriteSwapTarget spriteSwapTarget = spriteSwapTargets[i];
-
-            if (spriteSwapTarget.image == null)
-            {
-                continue;
-            }
-
-            spriteSwapTarget.image.sprite = !available && spriteSwapTarget.disabledSprite != null
-                ? spriteSwapTarget.disabledSprite
-                : originalSprites[i];
-        }
     }
 
     private void ResolveReferencesIfNeeded()
@@ -101,17 +78,15 @@ public class UIButtonStateView : MonoBehaviour
         if (targetGraphics != null && targetGraphics.Length > 0)
         {
             CacheOriginalGraphicColors();
-            CacheOriginalSprites();
             hasResolvedReferences = true;
             return;
         }
 
         targetGraphics = includeChildGraphics
             ? GetComponentsInChildren<Graphic>(true)
-            : new[] { GetComponent<Graphic>() };
+            : new[] { button != null && button.targetGraphic != null ? button.targetGraphic : GetComponent<Graphic>() };
 
         CacheOriginalGraphicColors();
-        CacheOriginalSprites();
         hasResolvedReferences = true;
     }
 
@@ -124,18 +99,6 @@ public class UIButtonStateView : MonoBehaviour
             originalGraphicColors[i] = targetGraphics[i] != null
                 ? targetGraphics[i].color
                 : Color.white;
-        }
-    }
-
-    private void CacheOriginalSprites()
-    {
-        originalSprites = new Sprite[spriteSwapTargets.Length];
-
-        for (int i = 0; i < spriteSwapTargets.Length; i++)
-        {
-            originalSprites[i] = spriteSwapTargets[i].image != null
-                ? spriteSwapTargets[i].image.sprite
-                : null;
         }
     }
 

@@ -14,9 +14,10 @@ public class BoardManager : MonoBehaviour
         Small12x6
     }
 
+    private int boardWidth = 17;
+    private int boardHeight = 8;
+
     [Header("Board Settings")]
-    [SerializeField] private int boardWidth = 17;
-    [SerializeField] private int boardHeight = 8;
     [SerializeField] private BoardSizePreset currentBoardSizePreset = BoardSizePreset.Large17x8;
     [SerializeField] private BoardLayoutConfig boardLayoutConfig = BoardLayoutConfig.CreateDefault();
     private float tileSpacingX;
@@ -44,8 +45,10 @@ public class BoardManager : MonoBehaviour
     [SerializeField] private TileView tilePrefab;
     [SerializeField] private Transform tileContainer;
     [SerializeField] private ItemInventory itemInventory;
+    [SerializeField] private UIManager uiManager;
 
     [Header("Tile Sprites")]
+    [SerializeField] private TileSpriteLibrary tileSpriteLibrary;
     [SerializeField] private Sprite[] tileSprites;
     [SerializeField] private Sprite backTileSprite;
 
@@ -146,6 +149,20 @@ public class BoardManager : MonoBehaviour
 
         GenerateBoardFromSeed(currentSeed);
         OnBoardRestarted?.Invoke();
+    }
+
+    public void SetTileContainerVisible(bool visible)
+    {
+        if (tileContainer == null)
+        {
+            Debug.LogWarning("SetTileContainerVisible failed: missing tile container reference.");
+            return;
+        }
+
+        if (tileContainer.gameObject.activeSelf != visible)
+        {
+            tileContainer.gameObject.SetActive(visible);
+        }
     }
 
     public void GenerateBoardFromSeed(int seed)
@@ -330,13 +347,14 @@ public class BoardManager : MonoBehaviour
                 continue;
             }
 
-            Sprite faceUpSprite = tileSprites[state.TileTypeId];
+            Sprite[] sprites = GetActiveTileSprites();
+            Sprite faceUpSprite = sprites[state.TileTypeId];
 
             tile.Initialize(faceUpSprite, state.TileTypeId, state.GridPosition);
 
             if (state.IsPath)
             {
-                tile.ConvertToPath(backTileSprite);
+                tile.ConvertToPath(GetActiveBackTileSprite());
             }
 
             tile.SetWorldPosition(GetWorldPosition(state.GridPosition));
@@ -363,7 +381,8 @@ public class BoardManager : MonoBehaviour
         int[] activeTileSpriteIds = GetActiveTileSpriteIds(currentSeed);
         int requiredTileCount = activeTileSpriteIds.Length * 4;
 
-        if (tileSprites == null || tileSprites.Length != 34)
+        Sprite[] sprites = GetActiveTileSprites();
+        if (sprites == null || sprites.Length != 34)
         {
             Debug.LogError("BoardManager only supports exactly 34 tile sprites for now.");
             return;
@@ -439,7 +458,8 @@ public class BoardManager : MonoBehaviour
             return false;
         }
 
-        if (tileSprites == null || tileSprites.Length != 34)
+        Sprite[] sprites = GetActiveTileSprites();
+        if (sprites == null || sprites.Length != 34)
         {
             Debug.LogError("RestoreFromSaveData failed: BoardManager needs exactly 34 tile sprites.");
             return false;
@@ -467,7 +487,7 @@ public class BoardManager : MonoBehaviour
                 continue;
             }
 
-            if (tileState.TileTypeId < 0 || tileState.TileTypeId >= tileSprites.Length)
+            if (tileState.TileTypeId < 0 || tileState.TileTypeId >= sprites.Length)
             {
                 Debug.LogWarning($"RestoreFromSaveData skipped tile with invalid type: {tileState.TileTypeId}.");
                 continue;
@@ -477,11 +497,11 @@ public class BoardManager : MonoBehaviour
             TileView spawnedTile = Instantiate(tilePrefab, GetWorldPosition(gridPosition), Quaternion.identity, tileContainer);
             ApplyTileScale(spawnedTile);
             spawnedTile.name = $"Tile_{tileState.X}_{tileState.Y}_{tileState.TileTypeId}";
-            spawnedTile.Initialize(tileSprites[tileState.TileTypeId], tileState.TileTypeId, gridPosition);
+            spawnedTile.Initialize(sprites[tileState.TileTypeId], tileState.TileTypeId, gridPosition);
 
             if (tileState.IsPath)
             {
-                spawnedTile.ConvertToPath(backTileSprite);
+                spawnedTile.ConvertToPath(GetActiveBackTileSprite());
             }
 
             boardTiles[tileState.X, tileState.Y] = spawnedTile;
@@ -501,8 +521,9 @@ public class BoardManager : MonoBehaviour
         }
 
         OnTilesMatched?.Invoke(tileA, tileB);
-        tileA.ConvertToPath(backTileSprite);
-        tileB.ConvertToPath(backTileSprite);
+        Sprite activeBackTileSprite = GetActiveBackTileSprite();
+        tileA.ConvertToPath(activeBackTileSprite);
+        tileB.ConvertToPath(activeBackTileSprite);
 
         remainingFaceUpTiles -= 2;
 
@@ -892,11 +913,12 @@ public class BoardManager : MonoBehaviour
 
     public Sprite GetBackTileSprite()
     {
-        return backTileSprite;
+        return GetActiveBackTileSprite();
     }
 
     private List<TileEntry> BuildShuffledTileList(System.Random seededRandom, int boardSeed)
     {
+        Sprite[] sprites = GetActiveTileSprites();
         List<TileEntry> tilePool = new List<TileEntry>();
         int[] activeTileSpriteIds = GetActiveTileSpriteIds(boardSeed);
 
@@ -905,7 +927,7 @@ public class BoardManager : MonoBehaviour
             for (int copy = 0; copy < 4; copy++)
             {
                 int tileSpriteId = activeTileSpriteIds[i];
-                tilePool.Add(new TileEntry(tileSprites[tileSpriteId], tileSpriteId));
+                tilePool.Add(new TileEntry(sprites[tileSpriteId], tileSpriteId));
             }
         }
 
@@ -1143,6 +1165,28 @@ public class BoardManager : MonoBehaviour
         }
     }
 
+    private Sprite[] GetActiveTileSprites()
+    {
+        if (tileSpriteLibrary != null &&
+            tileSpriteLibrary.TileSprites != null &&
+            tileSpriteLibrary.TileSprites.Length > 0)
+        {
+            return tileSpriteLibrary.TileSprites;
+        }
+
+        return tileSprites;
+    }
+
+    private Sprite GetActiveBackTileSprite()
+    {
+        if (tileSpriteLibrary != null && tileSpriteLibrary.BackTileSprite != null)
+        {
+            return tileSpriteLibrary.BackTileSprite;
+        }
+
+        return backTileSprite;
+    }
+
     private void ApplyTileScale(TileView tile)
     {
         if (tile == null || tilePrefab == null)
@@ -1214,13 +1258,52 @@ public class BoardManager : MonoBehaviour
         {
             if (tile != null && !tile.IsPath)
             {
-                tile.ConvertToPath(backTileSprite);
+                tile.ConvertToPath(GetActiveBackTileSprite());
             }
         }
 
         remainingFaceUpTiles = 0;
         Debug.Log("DebugForceWin called. remainingFaceUpTiles set to 0.");
         CheckWinCondition();
+    }
+
+    [ContextMenu("Reposition Tiles")]
+    public void DebugRepositionTiles()
+    {
+        CalculateSpacingFromPrefabScale();
+
+        for (int i = 0; i < spawnedTiles.Count; i++)
+        {
+            TileView tile = spawnedTiles[i];
+
+            if (tile == null)
+            {
+                continue;
+            }
+
+            ApplyTileScale(tile);
+            tile.SetWorldPosition(GetWorldPosition(tile.GridPosition));
+        }
+
+        Debug.Log("DebugRepositionTiles called. Tile spacing, scale, and world positions were refreshed.");
+    }
+
+    [ContextMenu("No Match Popup")]
+    public void DebugNoMatchPopup()
+    {
+        if (uiManager == null)
+        {
+            uiManager = FindAnyObjectByType<UIManager>();
+        }
+
+        if (uiManager == null)
+        {
+            Debug.LogWarning("DebugNoMatchPopup failed: missing UIManager reference.");
+            return;
+        }
+
+        uiManager.ShowNoMatchPopup();
+        Debug.Log("DebugNoMatchPopup called. Forced no-match popup effect.");
     }
 
 

@@ -11,14 +11,17 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] private TMP_Text guideBodyText;
 
     [Header("Undo UI")]
+    [SerializeField] private UIButtonStateView undoButtonStateView;
     [SerializeField] private Button undoButton;
     [SerializeField] private TMP_Text undoCountText;
 
     [Header("Shuffle UI")]
+    [SerializeField] private UIButtonStateView shuffleButtonStateView;
     [SerializeField] private Button shuffleButton;
     [SerializeField] private TMP_Text shuffleCountText;
 
     [Header("Swap UI")]
+    [SerializeField] private UIButtonStateView swapButtonStateView;
     [SerializeField] private Button swapButton;
     [SerializeField] private TMP_Text swapCountText;
     [SerializeField] private string mainMenuSceneName = "MainMenu";
@@ -273,9 +276,9 @@ public class TutorialManager : MonoBehaviour
             swapCountText.text = swapCount.ToString();
         }
 
-        ApplyButtonState(undoButton, CanUseUndo());
-        ApplyButtonState(shuffleButton, CanUseShuffle());
-        ApplyButtonState(swapButton, CanUseSwap());
+        ApplyButtonState(undoButtonStateView, undoButton, CanUseUndo());
+        ApplyButtonState(shuffleButtonStateView, shuffleButton, CanUseShuffle());
+        ApplyButtonState(swapButtonStateView, swapButton, CanUseSwap());
     }
 
     private void SetGuideTextForFlowStep(TutorialBoardManager.TutorialBoardFlowStep flowStep)
@@ -334,9 +337,13 @@ public class TutorialManager : MonoBehaviour
         }
     }
 
-    private static void ApplyButtonState(Button button, bool isAvailable)
+    private static void ApplyButtonState(UIButtonStateView stateView, Button button, bool isAvailable)
     {
-        if (button != null)
+        if (stateView != null)
+        {
+            stateView.SetAvailable(isAvailable);
+        }
+        else if (button != null)
         {
             button.interactable = isAvailable;
         }

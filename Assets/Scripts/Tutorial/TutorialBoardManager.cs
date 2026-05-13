@@ -7,7 +7,7 @@ public class TutorialBoardManager : MonoBehaviour
 {
     private const float SameTypePreviewScale = 1.2f;
     private const float GuideHintPauseSeconds = 0.8f;
-    private const float SwapTopRowGuideDelaySeconds = 0.2f;
+    private const float SwapTopRowGuideDelaySeconds = 0f;
 
     private const int TutorialBoardWidth = 12;
     private const int TutorialBoardHeight = 6;
@@ -27,8 +27,13 @@ public class TutorialBoardManager : MonoBehaviour
     [Header("References")]
     [SerializeField] private TileView tilePrefab;
     [SerializeField] private Transform tileContainer;
-    [SerializeField] private Sprite[] tileSprites;
+    [SerializeField] private TileSpriteLibrary tileSpriteLibrary;
     [SerializeField] private Sprite backTileSprite;
+
+    [Header("Board Settings")]
+    [SerializeField] private BoardLayoutConfig boardLayoutConfig = BoardLayoutConfig.CreateDefault();
+
+    private const int TutorialTileSpriteCount = 18;
 
     private readonly List<TileView> spawnedTiles = new List<TileView>();
     private readonly List<TileView> guideTiles = new List<TileView>();
@@ -37,7 +42,6 @@ public class TutorialBoardManager : MonoBehaviour
     private readonly List<TileView> activeDragCloneSources = new List<TileView>();
     private readonly List<TileView> dragTintedTiles = new List<TileView>();
 
-    private BoardLayoutConfig boardLayoutConfig = BoardLayoutConfig.CreateDefault();
     private TileView[,] boardTiles;
     private CellState[,] currentBoardState;
     private CellState[,] initialBoardSnapshot;
@@ -47,6 +51,8 @@ public class TutorialBoardManager : MonoBehaviour
     private TutorialBoardFlowStep currentFlowStep;
     private TileView activeInteractionTile;
     private TileView activeDragTile;
+    private Sprite[] tutorialTileSprites = Array.Empty<Sprite>();
+    private Sprite tutorialBackTileSprite;
     private Vector3 activeDragStartWorldPosition;
     private Vector2Int activeDragDirection;
     private int activeDragMaxSteps;
@@ -68,6 +74,7 @@ public class TutorialBoardManager : MonoBehaviour
     private void Start()
     {
         EnsureBoardLayoutConfig();
+        CacheTutorialTileSprites();
         BuildSnapshots();
         SpawnBoardObjects();
         ApplySnapshot(initialBoardSnapshot);
@@ -263,9 +270,9 @@ public class TutorialBoardManager : MonoBehaviour
             return;
         }
 
-        if (tileSprites == null || tileSprites.Length == 0)
+        if (tutorialTileSprites.Length == 0)
         {
-            Debug.LogWarning("TutorialBoardManager has no tile sprites assigned.");
+            Debug.LogWarning("TutorialBoardManager has no tile sprites available from TileSpriteLibrary.");
             return;
         }
 
@@ -279,7 +286,7 @@ public class TutorialBoardManager : MonoBehaviour
             {
                 Vector2Int position = new Vector2Int(x, y);
                 TileView tile = Instantiate(tilePrefab, GetWorldPosition(position), Quaternion.identity, tileContainer);
-                tile.Initialize(tileSprites[0], 0, position);
+                tile.Initialize(tutorialTileSprites[0], 0, position);
                 ApplyTileScale(tile);
                 boardTiles[x, y] = tile;
                 spawnedTiles.Add(tile);
@@ -331,7 +338,7 @@ public class TutorialBoardManager : MonoBehaviour
         }
 
         currentBoardState[position.x, position.y] = state;
-        tile.ApplyCellState(GetTileSprite(state.TileTypeId), state.TileTypeId, state.IsPath, backTileSprite);
+        tile.ApplyCellState(GetTileSprite(state.TileTypeId), state.TileTypeId, state.IsPath, tutorialBackTileSprite);
     }
 
     private void SetCurrentFlowStep(TutorialBoardFlowStep flowStep)
@@ -1049,12 +1056,45 @@ public class TutorialBoardManager : MonoBehaviour
 
     private Sprite GetTileSprite(int tileTypeId)
     {
-        if (tileTypeId < 0 || tileTypeId >= tileSprites.Length)
+        if (tutorialTileSprites.Length == 0)
         {
-            return tileSprites[0];
+            return null;
         }
 
-        return tileSprites[tileTypeId];
+        if (tileTypeId < 0 || tileTypeId >= tutorialTileSprites.Length)
+        {
+            return tutorialTileSprites[0];
+        }
+
+        return tutorialTileSprites[tileTypeId];
+    }
+
+    private void CacheTutorialTileSprites()
+    {
+        tutorialBackTileSprite = tileSpriteLibrary != null && tileSpriteLibrary.BackTileSprite != null
+            ? tileSpriteLibrary.BackTileSprite
+            : backTileSprite;
+
+        Sprite[] sourceSprites = tileSpriteLibrary != null ? tileSpriteLibrary.TileSprites : null;
+        if (sourceSprites == null || sourceSprites.Length == 0)
+        {
+            tutorialTileSprites = Array.Empty<Sprite>();
+            Debug.LogWarning("TutorialBoardManager could not find tile sprites on TileSpriteLibrary.");
+            return;
+        }
+
+        int spriteCount = Mathf.Min(TutorialTileSpriteCount, sourceSprites.Length);
+        tutorialTileSprites = new Sprite[spriteCount];
+
+        for (int i = 0; i < spriteCount; i++)
+        {
+            tutorialTileSprites[i] = sourceSprites[i];
+        }
+
+        if (spriteCount < TutorialTileSpriteCount)
+        {
+            Debug.LogWarning($"TutorialBoardManager expected {TutorialTileSpriteCount} tile sprites from TileSpriteLibrary, but only found {spriteCount}.");
+        }
     }
 
     private void SwapTileStates(Vector2Int positionA, Vector2Int positionB)

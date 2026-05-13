@@ -5,9 +5,13 @@ using UnityEngine;
 public class FillBackgroundToCamera : MonoBehaviour
 {
     [SerializeField] private Camera targetCamera;
+    [SerializeField] private Sprite background4By3;
+    [SerializeField] private Sprite background16By9;
     [SerializeField] private bool fillScreen = true;
     [SerializeField] private bool preserveAspect = false;
     [SerializeField] private float worldZPosition = 0f;
+
+    private const int WideBackgroundMinScreenWidth = 2150;
 
     private SpriteRenderer spriteRenderer;
 
@@ -42,6 +46,8 @@ public class FillBackgroundToCamera : MonoBehaviour
         {
             spriteRenderer = GetComponent<SpriteRenderer>();
         }
+
+        ApplyBackgroundSprite();
 
         if (spriteRenderer == null || spriteRenderer.sprite == null)
         {
@@ -81,6 +87,23 @@ public class FillBackgroundToCamera : MonoBehaviour
         );
 
         transform.localScale = GetLocalScaleForWorldScale(targetWorldScale);
+    }
+
+    private void ApplyBackgroundSprite()
+    {
+        if (spriteRenderer == null)
+        {
+            return;
+        }
+
+        Sprite selectedBackground = Screen.width < WideBackgroundMinScreenWidth
+            ? background4By3
+            : background16By9;
+
+        if (selectedBackground != null && spriteRenderer.sprite != selectedBackground)
+        {
+            spriteRenderer.sprite = selectedBackground;
+        }
     }
 
     private Vector3 GetLocalScaleForWorldScale(Vector3 targetWorldScale)

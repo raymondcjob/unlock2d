@@ -28,6 +28,7 @@ public class SpriteNumberDisplay : MonoBehaviour
     [SerializeField] private TMP_Text sourceText;
     [SerializeField] private bool watchSourceEveryFrame = true;
     [SerializeField] private bool hideSourceGraphic = true;
+    [SerializeField] private bool displayDisabled;
 
     [Header("Sprites")]
     [SerializeField] private Sprite[] digitSprites = new Sprite[10];
@@ -113,6 +114,12 @@ public class SpriteNumberDisplay : MonoBehaviour
 
     public void Refresh(bool forceRefresh = true)
     {
+        if (displayDisabled)
+        {
+            HideSpawnedImages();
+            return;
+        }
+
         string currentText = sourceText != null ? sourceText.text : string.Empty;
 
         if (!forceRefresh && string.Equals(lastRenderedText, currentText, StringComparison.Ordinal))
@@ -126,8 +133,27 @@ public class SpriteNumberDisplay : MonoBehaviour
 
     public void SetDisplayText(string value)
     {
+        if (displayDisabled)
+        {
+            lastRenderedText = value ?? string.Empty;
+            HideSpawnedImages();
+            return;
+        }
+
         lastRenderedText = value ?? string.Empty;
         Render(lastRenderedText);
+    }
+
+    public void DisableDisplay()
+    {
+        displayDisabled = true;
+        HideSpawnedImages();
+    }
+
+    public void EnableDisplay()
+    {
+        displayDisabled = false;
+        Refresh(forceRefresh: true);
     }
 
     private void Render(string value)
@@ -148,6 +174,20 @@ public class SpriteNumberDisplay : MonoBehaviour
         }
 
         for (int i = spritesToRender.Count; i < spawnedImages.Count; i++)
+        {
+            if (spawnedImages[i] != null)
+            {
+                spawnedImages[i].gameObject.SetActive(false);
+            }
+        }
+    }
+
+    private void HideSpawnedImages()
+    {
+        EnsureContainer();
+        RebuildSpawnedImageList();
+
+        for (int i = 0; i < spawnedImages.Count; i++)
         {
             if (spawnedImages[i] != null)
             {

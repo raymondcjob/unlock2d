@@ -13,7 +13,7 @@ public class TileView : MonoBehaviour
     [SerializeField] private Material hintFlashMaterialTemplate;
 
     [Header("Visual Settings")]
-    [SerializeField] private Color dragSourceTint = new Color(0.6f, 0.6f, 0.6f, 1f);
+    [SerializeField] private Color dragSourceTint = new Color(0.45f, 0.45f, 0.45f, 1f);
     [SerializeField] private Color hintFlashColor = new Color(0.82f, 0.82f, 0.82f, 0.9f);
     [SerializeField] private float hintFlashSweepDuration = 1.0f;
     [SerializeField] private float hintFlashPauseDuration = 1.0f;

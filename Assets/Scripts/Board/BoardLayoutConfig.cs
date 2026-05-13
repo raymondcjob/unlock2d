@@ -4,12 +4,11 @@ using UnityEngine;
 [Serializable]
 public sealed class BoardLayoutConfig
 {
-    private const float BaseTileScaleX = 0.244f;
-    private const float BaseTileScaleY = 0.248f;
-    private const float BaseTileSpacingX = 0.61f;
-    private const float BaseTileSpacingY = 0.81f;
     private const int ReferenceBoardWidth = 17;
     private const int ReferenceBoardHeight = 8;
+
+    [SerializeField] private Vector2 baseTileScale = new Vector2(0.8f, 0.8f);
+    [SerializeField] private Vector2 baseTileSpacing = new Vector2(0.61f, 0.81f);
 
     private static readonly BoardLayoutPreset Small12x6Preset = new BoardLayoutPreset(12, 6);
     private static readonly BoardLayoutPreset Medium14x8Preset = new BoardLayoutPreset(14, 8);
@@ -40,8 +39,8 @@ public sealed class BoardLayoutConfig
 
     public Vector2 CalculateSpacing(int boardWidth, int boardHeight, Vector3 tilePrefabScale)
     {
-        if (Mathf.Approximately(BaseTileScaleX, 0f) ||
-            Mathf.Approximately(BaseTileScaleY, 0f))
+        if (Mathf.Approximately(baseTileScale.x, 0f) ||
+            Mathf.Approximately(baseTileScale.y, 0f))
         {
             return Vector2.zero;
         }
@@ -53,12 +52,12 @@ public sealed class BoardLayoutConfig
             return Vector2.zero;
         }
 
-        float scaleRatioX = tilePrefabScale.x / BaseTileScaleX;
-        float scaleRatioY = tilePrefabScale.y / BaseTileScaleY;
+        float scaleRatioX = tilePrefabScale.x / baseTileScale.x;
+        float scaleRatioY = tilePrefabScale.y / baseTileScale.y;
 
         return new Vector2(
-            BaseTileSpacingX * scaleRatioX * boardScaleMultiplier,
-            BaseTileSpacingY * scaleRatioY * boardScaleMultiplier);
+            baseTileSpacing.x * scaleRatioX * boardScaleMultiplier,
+            baseTileSpacing.y * scaleRatioY * boardScaleMultiplier);
     }
 
     public Vector2 GetWorldPosition(int boardWidth, int boardHeight, float tileSpacingX, float tileSpacingY, int x, int y)

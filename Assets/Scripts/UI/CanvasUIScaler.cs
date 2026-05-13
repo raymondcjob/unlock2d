@@ -1,26 +1,37 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.Serialization;
 
 namespace Unlock2D.UI
 {
+    [ExecuteAlways]
     [DisallowMultipleComponent]
     [RequireComponent(typeof(RectTransform))]
     public class CanvasUIScaler : MonoBehaviour
     {
-        [System.Serializable]
-        private struct RectTransformValues
+        private enum ScaleField
         {
-            public Vector2 anchoredPosition;
-            public Vector2 sizeDelta;
-            public Vector2 offsetMin;
-            public Vector2 offsetMax;
+            PosX,
+            PosY,
+            Width,
+            Height,
+            LeftAndRight,
+            TopAndBottom,
+            LocalScaleX,
+            LocalScaleY,
+            LayoutSpacing
         }
 
-        private struct TextReferenceValues
+        [System.Serializable]
+        private class FixedScaleOverride
         {
-            public TMP_Text text;
-            public float fontSize;
+            public ScaleField scaleField;
+            [FormerlySerializedAs("screenWidthOrHeight")]
+            public float baseResolution;
+            public float fieldValue;
+            [FormerlySerializedAs("secondaryFieldValue")]
+            public float optionalValue;
         }
 
         private struct LayoutGroupReferenceValues
@@ -28,9 +39,6 @@ namespace Unlock2D.UI
             public HorizontalOrVerticalLayoutGroup layoutGroup;
             public float spacing;
         }
-
-        [Header("Base")]
-        [SerializeField] private Vector2 baseResolution = new Vector2(2400f, 1080f);
 
         [Header("Scale Fields")]
         [SerializeField] private bool scalePosX;
@@ -42,42 +50,30 @@ namespace Unlock2D.UI
         [SerializeField] private bool scaleLocalScaleX;
         [SerializeField] private bool scaleLocalScaleY;
 
+        [Header("Fixed Scaling Overrides")]
+        [SerializeField] private FixedScaleOverride[] fixedScaleOverrides;
+
         [Header("Options")]
         [SerializeField] private bool useUniformScale;
-        [SerializeField] private bool scaleTextSize;
         [SerializeField] private bool scaleLayoutSpacing;
         [SerializeField] private bool logScaleFactors;
 
         private RectTransform rectTransform;
-        private RectTransformValues referenceRectTransformValues;
-        private TextReferenceValues[] referenceTextValues;
         private LayoutGroupReferenceValues[] referenceLayoutGroupValues;
         private int lastScreenWidth = -1;
         private int lastScreenHeight = -1;
-        private bool hasReferenceRectTransformValues;
-        private bool hasReferenceTextValues;
         private bool hasReferenceLayoutGroupValues;
+        private string lastMissingBaseValuesLogKey;
 
         private void Reset()
         {
             rectTransform = GetComponent<RectTransform>();
-            CaptureReferenceValuesFromCurrentRect();
             LogInvalidScaleFieldSelections();
         }
 
         private void Awake()
         {
             EnsureRectTransform();
-
-            if (!hasReferenceRectTransformValues)
-            {
-                CaptureReferenceValuesFromCurrentRect();
-            }
-
-            if (!hasReferenceTextValues)
-            {
-                CaptureReferenceTextValues();
-            }
 
             if (!hasReferenceLayoutGroupValues)
             {
@@ -90,16 +86,6 @@ namespace Unlock2D.UI
         private void OnEnable()
         {
             EnsureRectTransform();
-
-            if (!hasReferenceRectTransformValues)
-            {
-                CaptureReferenceValuesFromCurrentRect();
-            }
-
-            if (!hasReferenceTextValues)
-            {
-                CaptureReferenceTextValues();
-            }
 
             if (!hasReferenceLayoutGroupValues)
             {
@@ -117,9 +103,6 @@ namespace Unlock2D.UI
 
         private void OnValidate()
         {
-            baseResolution.x = Mathf.Max(1f, baseResolution.x);
-            baseResolution.y = Mathf.Max(1f, baseResolution.y);
-
             EnsureRectTransform();
             LogInvalidScaleFieldSelections();
 
@@ -128,8 +111,6 @@ namespace Unlock2D.UI
 
             if (!Application.isPlaying)
             {
-                hasReferenceRectTransformValues = false;
-                hasReferenceTextValues = false;
                 hasReferenceLayoutGroupValues = false;
             }
         }
@@ -141,11 +122,6 @@ namespace Unlock2D.UI
                 return;
             }
 
-            if (!hasReferenceRectTransformValues)
-            {
-                CaptureReferenceValuesFromCurrentRect();
-            }
-
             int screenWidth = Mathf.Max(1, Screen.width);
             int screenHeight = Mathf.Max(1, Screen.height);
 
@@ -154,9 +130,13 @@ namespace Unlock2D.UI
                 return;
             }
 
-            float scaleX = screenWidth / baseResolution.x;
-            float scaleY = screenHeight / baseResolution.y;
-            float uniformScale = Mathf.Min(scaleX, scaleY);
+            if (!TryGetScaleFactors(screenWidth, screenHeight, out float scaleX, out float scaleY, out float uniformScale))
+            {
+                lastScreenWidth = screenWidth;
+                lastScreenHeight = screenHeight;
+                return;
+            }
+
             float appliedScaleX = useUniformScale ? uniformScale : scaleX;
             float appliedScaleY = useUniformScale ? uniformScale : scaleY;
             Vector2 anchoredPosition = rectTransform.anchoredPosition;
@@ -166,73 +146,120 @@ namespace Unlock2D.UI
 
             if (scalePosX)
             {
-                anchoredPosition.x = referenceRectTransformValues.anchoredPosition.x * appliedScaleX;
-                rectTransform.anchoredPosition = anchoredPosition;
-                LogScaleApplied("Pos X", appliedScaleX);
+                if (TryGetScaledFieldValue(
+                    ScaleField.PosX,
+                    appliedScaleX,
+                    screenWidth,
+                    out float scaledPosX))
+                {
+                    anchoredPosition.x = scaledPosX;
+                    rectTransform.anchoredPosition = anchoredPosition;
+                    LogScaleApplied("Pos X", appliedScaleX);
+                }
             }
 
             if (scalePosY)
             {
-                anchoredPosition.y = referenceRectTransformValues.anchoredPosition.y * appliedScaleY;
-                rectTransform.anchoredPosition = anchoredPosition;
-                LogScaleApplied("Pos Y", appliedScaleY);
+                if (TryGetScaledFieldValue(
+                    ScaleField.PosY,
+                    appliedScaleY,
+                    screenHeight,
+                    out float scaledPosY))
+                {
+                    anchoredPosition.y = scaledPosY;
+                    rectTransform.anchoredPosition = anchoredPosition;
+                    LogScaleApplied("Pos Y", appliedScaleY);
+                }
             }
 
             if (scaleWidth)
             {
-                sizeDelta.x = referenceRectTransformValues.sizeDelta.x * appliedScaleX;
-                rectTransform.sizeDelta = sizeDelta;
-                LogScaleApplied("Width", appliedScaleX);
+                if (TryGetScaledFieldValue(
+                    ScaleField.Width,
+                    appliedScaleX,
+                    screenWidth,
+                    out float scaledWidth))
+                {
+                    sizeDelta.x = scaledWidth;
+                    rectTransform.sizeDelta = sizeDelta;
+                    LogScaleApplied("Width", appliedScaleX);
+                }
             }
 
             if (scaleHeight)
             {
-                sizeDelta.y = referenceRectTransformValues.sizeDelta.y * appliedScaleY;
-                rectTransform.sizeDelta = sizeDelta;
-                LogScaleApplied("Height", appliedScaleY);
+                if (TryGetScaledFieldValue(
+                    ScaleField.Height,
+                    appliedScaleY,
+                    screenHeight,
+                    out float scaledHeight))
+                {
+                    sizeDelta.y = scaledHeight;
+                    rectTransform.sizeDelta = sizeDelta;
+                    LogScaleApplied("Height", appliedScaleY);
+                }
             }
 
             if (scaleLeftAndRight)
             {
-                offsetMin.x = referenceRectTransformValues.offsetMin.x * appliedScaleX;
-                offsetMax.x = referenceRectTransformValues.offsetMax.x * appliedScaleX;
-                rectTransform.offsetMin = new Vector2(offsetMin.x, rectTransform.offsetMin.y);
-                rectTransform.offsetMax = new Vector2(offsetMax.x, rectTransform.offsetMax.y);
-                LogScaleApplied("Left & Right", appliedScaleX);
+                if (TryGetScaledStretchFieldValue(
+                    ScaleField.LeftAndRight,
+                    appliedScaleX,
+                    screenWidth,
+                    out float left,
+                    out float right))
+                {
+                    offsetMin.x = left;
+                    offsetMax.x = -right;
+                    rectTransform.offsetMin = new Vector2(offsetMin.x, rectTransform.offsetMin.y);
+                    rectTransform.offsetMax = new Vector2(offsetMax.x, rectTransform.offsetMax.y);
+                    LogScaleApplied("Left & Right", appliedScaleX);
+                }
             }
 
             if (scaleTopAndBottom)
             {
-                offsetMin.y = referenceRectTransformValues.offsetMin.y * appliedScaleY;
-                offsetMax.y = referenceRectTransformValues.offsetMax.y * appliedScaleY;
-                rectTransform.offsetMin = new Vector2(rectTransform.offsetMin.x, offsetMin.y);
-                rectTransform.offsetMax = new Vector2(rectTransform.offsetMax.x, offsetMax.y);
-                LogScaleApplied("Top & Bottom", appliedScaleY);
+                if (TryGetScaledStretchFieldValue(
+                    ScaleField.TopAndBottom,
+                    appliedScaleY,
+                    screenHeight,
+                    out float top,
+                    out float bottom))
+                {
+                    offsetMin.y = bottom;
+                    offsetMax.y = -top;
+                    rectTransform.offsetMin = new Vector2(rectTransform.offsetMin.x, offsetMin.y);
+                    rectTransform.offsetMax = new Vector2(rectTransform.offsetMax.x, offsetMax.y);
+                    LogScaleApplied("Top & Bottom", appliedScaleY);
+                }
             }
 
-            rectTransform.localScale = new Vector3(
-                scaleLocalScaleX ? appliedScaleX : 1f,
-                scaleLocalScaleY ? appliedScaleY : 1f,
-                1f);
+            Vector3 localScale = rectTransform.localScale;
 
             if (scaleLocalScaleX)
             {
-                LogScaleApplied("Scale X", appliedScaleX);
+                if (TryGetScaledFieldValue(ScaleField.LocalScaleX, appliedScaleX, screenWidth, out float scaledLocalScaleX))
+                {
+                    localScale.x = scaledLocalScaleX;
+                    LogScaleApplied("Scale X", appliedScaleX);
+                }
             }
 
             if (scaleLocalScaleY)
             {
-                LogScaleApplied("Scale Y", appliedScaleY);
+                if (TryGetScaledFieldValue(ScaleField.LocalScaleY, appliedScaleY, screenHeight, out float scaledLocalScaleY))
+                {
+                    localScale.y = scaledLocalScaleY;
+                    LogScaleApplied("Scale Y", appliedScaleY);
+                }
             }
 
-            if (scaleTextSize)
-            {
-                ApplyTextScale(uniformScale);
-            }
+            localScale.z = 1f;
+            rectTransform.localScale = localScale;
 
             if (scaleLayoutSpacing)
             {
-                ApplyLayoutSpacingScale(appliedScaleX, appliedScaleY);
+                ApplyLayoutSpacingScale(screenWidth, screenHeight, appliedScaleX, appliedScaleY);
             }
 
             lastScreenWidth = screenWidth;
@@ -247,40 +274,6 @@ namespace Unlock2D.UI
             }
 
             return rectTransform != null;
-        }
-
-        private void CaptureReferenceValuesFromCurrentRect()
-        {
-            if (!EnsureRectTransform())
-            {
-                return;
-            }
-
-            referenceRectTransformValues = new RectTransformValues
-            {
-                anchoredPosition = rectTransform.anchoredPosition,
-                sizeDelta = rectTransform.sizeDelta,
-                offsetMin = rectTransform.offsetMin,
-                offsetMax = rectTransform.offsetMax
-            };
-            hasReferenceRectTransformValues = true;
-        }
-
-        private void CaptureReferenceTextValues()
-        {
-            TMP_Text[] texts = GetComponentsInChildren<TMP_Text>(true);
-            referenceTextValues = new TextReferenceValues[texts.Length];
-
-            for (int i = 0; i < texts.Length; i++)
-            {
-                referenceTextValues[i] = new TextReferenceValues
-                {
-                    text = texts[i],
-                    fontSize = texts[i].fontSize
-                };
-            }
-
-            hasReferenceTextValues = true;
         }
 
         private void CaptureReferenceLayoutGroupValues()
@@ -300,7 +293,11 @@ namespace Unlock2D.UI
             hasReferenceLayoutGroupValues = true;
         }
 
-        private void ApplyLayoutSpacingScale(float horizontalScaleFactor, float verticalScaleFactor)
+        private void ApplyLayoutSpacingScale(
+            int screenWidth,
+            int screenHeight,
+            float horizontalScaleFactor,
+            float verticalScaleFactor)
         {
             if (!hasReferenceLayoutGroupValues)
             {
@@ -318,29 +315,254 @@ namespace Unlock2D.UI
                     ? horizontalScaleFactor
                     : verticalScaleFactor;
 
-                referenceLayoutGroupValues[i].layoutGroup.spacing = referenceLayoutGroupValues[i].spacing * scaleFactor;
-                LogScaleApplied("Layout Spacing", scaleFactor);
-            }
-        }
+                int currentScreenSize = referenceLayoutGroupValues[i].layoutGroup is HorizontalLayoutGroup
+                    ? screenWidth
+                    : screenHeight;
 
-        private void ApplyTextScale(float scaleFactor)
-        {
-            if (!hasReferenceTextValues)
-            {
-                CaptureReferenceTextValues();
-            }
-
-            for (int i = 0; i < referenceTextValues.Length; i++)
-            {
-                if (referenceTextValues[i].text == null)
+                if (!TryGetScaledFieldValue(
+                    ScaleField.LayoutSpacing,
+                    scaleFactor,
+                    currentScreenSize,
+                    out float scaledSpacing))
                 {
                     continue;
                 }
 
-                referenceTextValues[i].text.fontSize = referenceTextValues[i].fontSize * scaleFactor;
+                referenceLayoutGroupValues[i].layoutGroup.spacing = scaledSpacing;
+                LogScaleApplied("Layout Spacing", scaleFactor);
+            }
+        }
+
+        private bool TryGetScaleFactors(
+            int screenWidth,
+            int screenHeight,
+            out float scaleX,
+            out float scaleY,
+            out float uniformScale)
+        {
+            scaleX = 1f;
+            scaleY = 1f;
+            uniformScale = 1f;
+
+            if (fixedScaleOverrides == null || fixedScaleOverrides.Length == 0)
+            {
+                LogMissingBaseValuesForCheckedFields();
+                return false;
             }
 
-            LogScaleApplied("Text Size", scaleFactor);
+            bool hasXBase = TryGetClosestEntryForAxis(true, screenWidth, out FixedScaleOverride closestXEntry);
+            bool hasYBase = TryGetClosestEntryForAxis(false, screenHeight, out FixedScaleOverride closestYEntry);
+
+            if (useUniformScale && (!hasXBase || !hasYBase))
+            {
+                LogMissingUniformBaseValues(hasXBase, hasYBase);
+                return false;
+            }
+
+            LogMissingBaseValuesForMissingCheckedFields();
+
+            if (hasXBase)
+            {
+                scaleX = screenWidth / Mathf.Abs(GetBaseResolutionForAxis(closestXEntry, true));
+            }
+
+            if (hasYBase)
+            {
+                scaleY = screenHeight / Mathf.Abs(GetBaseResolutionForAxis(closestYEntry, false));
+            }
+
+            uniformScale = Mathf.Min(scaleX, scaleY);
+            return true;
+        }
+
+        private bool TryGetScaledStretchFieldValue(
+            ScaleField scaleField,
+            float scaleFactor,
+            int currentScreenSize,
+            out float firstValue,
+            out float secondValue)
+        {
+            firstValue = 0f;
+            secondValue = 0f;
+
+            if (!TryGetClosestEntry(scaleField, currentScreenSize, out FixedScaleOverride closestOverride))
+            {
+                return false;
+            }
+
+            float firstBaseValue = closestOverride.fieldValue;
+            float secondBaseValue = closestOverride.optionalValue;
+
+            if (useUniformScale)
+            {
+                firstValue = firstBaseValue * scaleFactor;
+                secondValue = secondBaseValue * scaleFactor;
+            }
+            else
+            {
+                float fieldScaleFactor = currentScreenSize / Mathf.Abs(closestOverride.baseResolution);
+                firstValue = firstBaseValue * fieldScaleFactor;
+                secondValue = secondBaseValue * fieldScaleFactor;
+            }
+
+            return true;
+        }
+
+        private bool TryGetScaledFieldValue(
+            ScaleField scaleField,
+            float scaleFactor,
+            int currentScreenSize,
+            out float scaledValue)
+        {
+            scaledValue = 0f;
+
+            if (!TryGetClosestEntry(scaleField, currentScreenSize, out FixedScaleOverride closestOverride))
+            {
+                return false;
+            }
+
+            scaledValue = useUniformScale
+                ? closestOverride.fieldValue * scaleFactor
+                : closestOverride.fieldValue * currentScreenSize / Mathf.Abs(closestOverride.baseResolution);
+            return true;
+        }
+
+        private bool TryGetClosestEntry(
+            ScaleField scaleField,
+            int currentScreenSize,
+            out FixedScaleOverride closestOverride)
+        {
+            closestOverride = default(FixedScaleOverride);
+
+            if (fixedScaleOverrides == null || fixedScaleOverrides.Length == 0)
+            {
+                return false;
+            }
+
+            int closestIndex = -1;
+            float closestDistance = float.MaxValue;
+
+            for (int i = 0; i < fixedScaleOverrides.Length; i++)
+            {
+                FixedScaleOverride fixedScaleOverride = fixedScaleOverrides[i];
+
+                if (!IsValidEntryForScaleField(fixedScaleOverride, scaleField))
+                {
+                    continue;
+                }
+
+                float configuredScreenSize = Mathf.Abs(fixedScaleOverride.baseResolution);
+                float distance = Mathf.Abs(currentScreenSize - configuredScreenSize);
+
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closestIndex = i;
+                }
+            }
+
+            if (closestIndex < 0)
+            {
+                return false;
+            }
+
+            closestOverride = fixedScaleOverrides[closestIndex];
+            return true;
+        }
+
+        private bool TryGetClosestEntryForAxis(
+            bool horizontalAxis,
+            int currentScreenSize,
+            out FixedScaleOverride closestOverride)
+        {
+            closestOverride = default(FixedScaleOverride);
+
+            if (fixedScaleOverrides == null || fixedScaleOverrides.Length == 0)
+            {
+                return false;
+            }
+
+            int closestIndex = -1;
+            float closestDistance = float.MaxValue;
+
+            for (int i = 0; i < fixedScaleOverrides.Length; i++)
+            {
+                FixedScaleOverride fixedScaleOverride = fixedScaleOverrides[i];
+
+                if (!IsValidScaleEntry(fixedScaleOverride) ||
+                    !ScaleFieldMatchesAxis(fixedScaleOverride.scaleField, horizontalAxis))
+                {
+                    continue;
+                }
+
+                float configuredScreenSize = Mathf.Abs(GetBaseResolutionForAxis(fixedScaleOverride, horizontalAxis));
+                float distance = Mathf.Abs(currentScreenSize - configuredScreenSize);
+
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closestIndex = i;
+                }
+            }
+
+            if (closestIndex < 0)
+            {
+                return false;
+            }
+
+            closestOverride = fixedScaleOverrides[closestIndex];
+            return true;
+        }
+
+        private bool IsValidEntryForScaleField(FixedScaleOverride fixedScaleOverride, ScaleField scaleField)
+        {
+            return IsValidScaleEntry(fixedScaleOverride) && fixedScaleOverride.scaleField == scaleField;
+        }
+
+        private bool IsValidScaleEntry(FixedScaleOverride fixedScaleOverride)
+        {
+            if (fixedScaleOverride == null)
+            {
+                return false;
+            }
+
+            return !Mathf.Approximately(fixedScaleOverride.baseResolution, 0f) &&
+                   !Mathf.Approximately(fixedScaleOverride.fieldValue, 0f);
+        }
+
+        private float GetBaseResolutionForAxis(FixedScaleOverride fixedScaleOverride, bool horizontalAxis)
+        {
+            return fixedScaleOverride != null ? fixedScaleOverride.baseResolution : 0f;
+        }
+
+        private bool ScaleFieldMatchesAxis(ScaleField scaleField, bool horizontalAxis)
+        {
+            if (scaleField == ScaleField.LayoutSpacing)
+            {
+                return horizontalAxis;
+            }
+
+            return IsHorizontalScaleField(scaleField) == horizontalAxis;
+        }
+
+        private bool IsHorizontalScaleField(ScaleField scaleField)
+        {
+            switch (scaleField)
+            {
+                case ScaleField.PosX:
+                case ScaleField.Width:
+                case ScaleField.LeftAndRight:
+                case ScaleField.LocalScaleX:
+                case ScaleField.LayoutSpacing:
+                    return true;
+                case ScaleField.PosY:
+                case ScaleField.Height:
+                case ScaleField.TopAndBottom:
+                case ScaleField.LocalScaleY:
+                    return false;
+                default:
+                    return true;
+            }
         }
 
         private void LogInvalidScaleFieldSelections()
@@ -378,6 +600,217 @@ namespace Unlock2D.UI
             if (scaleTopAndBottom && !AnchorPresetUsesTopAndBottom())
             {
                 LogInvalidScaleField("Top & Bottom");
+            }
+
+            LogInvalidFixedScaleOverrides();
+        }
+
+        private void LogInvalidFixedScaleOverrides()
+        {
+            if (fixedScaleOverrides == null || fixedScaleOverrides.Length == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < fixedScaleOverrides.Length; i++)
+            {
+                FixedScaleOverride fixedScaleOverride = fixedScaleOverrides[i];
+
+                if (fixedScaleOverride == null)
+                {
+                    continue;
+                }
+
+                ScaleField scaleField = fixedScaleOverride.scaleField;
+                if (IsScaleFieldEnabled(scaleField))
+                {
+                    continue;
+                }
+
+                Debug.LogWarning(
+                    $"{nameof(CanvasUIScaler)} on '{name}' has a Fixed Scaling Override for {GetScaleFieldDisplayName(scaleField)}, but that Scale Field is not checked. The override will be ignored until the Scale Field is enabled.",
+                    this);
+            }
+        }
+
+        private void LogMissingBaseValuesForCheckedFields()
+        {
+            string missingFields = GetCheckedScaleFieldDisplayNames();
+
+            if (string.IsNullOrEmpty(missingFields))
+            {
+                return;
+            }
+
+            LogMissingBaseValuesOnce(missingFields);
+        }
+
+        private void LogMissingBaseValuesForMissingCheckedFields()
+        {
+            string missingFields = string.Empty;
+
+            AppendMissingScaleFieldNameIfChecked(ref missingFields, ScaleField.PosX, scalePosX);
+            AppendMissingScaleFieldNameIfChecked(ref missingFields, ScaleField.PosY, scalePosY);
+            AppendMissingScaleFieldNameIfChecked(ref missingFields, ScaleField.Width, scaleWidth);
+            AppendMissingScaleFieldNameIfChecked(ref missingFields, ScaleField.Height, scaleHeight);
+            AppendMissingScaleFieldNameIfChecked(ref missingFields, ScaleField.LeftAndRight, scaleLeftAndRight);
+            AppendMissingScaleFieldNameIfChecked(ref missingFields, ScaleField.TopAndBottom, scaleTopAndBottom);
+            AppendMissingScaleFieldNameIfChecked(ref missingFields, ScaleField.LocalScaleX, scaleLocalScaleX);
+            AppendMissingScaleFieldNameIfChecked(ref missingFields, ScaleField.LocalScaleY, scaleLocalScaleY);
+            AppendMissingScaleFieldNameIfChecked(ref missingFields, ScaleField.LayoutSpacing, scaleLayoutSpacing);
+
+            if (!string.IsNullOrEmpty(missingFields))
+            {
+                LogMissingBaseValuesOnce(missingFields);
+            }
+        }
+
+        private void LogMissingUniformBaseValues(bool hasXBase, bool hasYBase)
+        {
+            string missingAxes = string.Empty;
+
+            if (!hasXBase)
+            {
+                missingAxes = "an X-based scale field";
+            }
+
+            if (!hasYBase)
+            {
+                missingAxes = string.IsNullOrEmpty(missingAxes)
+                    ? "a Y-based scale field"
+                    : $"{missingAxes}, a Y-based scale field";
+            }
+
+            LogMissingBaseValuesOnce(missingAxes);
+        }
+
+        private void LogMissingBaseValuesOnce(string missingFields)
+        {
+            if (string.IsNullOrEmpty(missingFields) || lastMissingBaseValuesLogKey == missingFields)
+            {
+                return;
+            }
+
+            lastMissingBaseValuesLogKey = missingFields;
+            Debug.LogWarning(
+                $"{nameof(CanvasUIScaler)} on '{name}': No base scaling value exists for {missingFields}.",
+                this);
+        }
+
+        private string GetCheckedScaleFieldDisplayNames()
+        {
+            string fieldNames = string.Empty;
+
+            AppendScaleFieldNameIfChecked(ref fieldNames, ScaleField.PosX, scalePosX);
+            AppendScaleFieldNameIfChecked(ref fieldNames, ScaleField.PosY, scalePosY);
+            AppendScaleFieldNameIfChecked(ref fieldNames, ScaleField.Width, scaleWidth);
+            AppendScaleFieldNameIfChecked(ref fieldNames, ScaleField.Height, scaleHeight);
+            AppendScaleFieldNameIfChecked(ref fieldNames, ScaleField.LeftAndRight, scaleLeftAndRight);
+            AppendScaleFieldNameIfChecked(ref fieldNames, ScaleField.TopAndBottom, scaleTopAndBottom);
+            AppendScaleFieldNameIfChecked(ref fieldNames, ScaleField.LocalScaleX, scaleLocalScaleX);
+            AppendScaleFieldNameIfChecked(ref fieldNames, ScaleField.LocalScaleY, scaleLocalScaleY);
+            AppendScaleFieldNameIfChecked(ref fieldNames, ScaleField.LayoutSpacing, scaleLayoutSpacing);
+
+            return fieldNames;
+        }
+
+        private void AppendScaleFieldNameIfChecked(ref string fieldNames, ScaleField scaleField, bool isChecked)
+        {
+            if (!isChecked)
+            {
+                return;
+            }
+
+            string displayName = GetScaleFieldDisplayName(scaleField);
+            fieldNames = string.IsNullOrEmpty(fieldNames)
+                ? displayName
+                : $"{fieldNames}, {displayName}";
+        }
+
+        private void AppendMissingScaleFieldNameIfChecked(ref string fieldNames, ScaleField scaleField, bool isChecked)
+        {
+            if (!isChecked || HasEntryForScaleField(scaleField))
+            {
+                return;
+            }
+
+            string displayName = GetScaleFieldDisplayName(scaleField);
+            fieldNames = string.IsNullOrEmpty(fieldNames)
+                ? displayName
+                : $"{fieldNames}, {displayName}";
+        }
+
+        private bool HasEntryForScaleField(ScaleField scaleField)
+        {
+            if (fixedScaleOverrides == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < fixedScaleOverrides.Length; i++)
+            {
+                FixedScaleOverride fixedScaleOverride = fixedScaleOverrides[i];
+
+                if (IsValidEntryForScaleField(fixedScaleOverride, scaleField))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool IsScaleFieldEnabled(ScaleField scaleField)
+        {
+            switch (scaleField)
+            {
+                case ScaleField.PosX:
+                    return scalePosX;
+                case ScaleField.PosY:
+                    return scalePosY;
+                case ScaleField.Width:
+                    return scaleWidth;
+                case ScaleField.Height:
+                    return scaleHeight;
+                case ScaleField.LeftAndRight:
+                    return scaleLeftAndRight;
+                case ScaleField.TopAndBottom:
+                    return scaleTopAndBottom;
+                case ScaleField.LocalScaleX:
+                    return scaleLocalScaleX;
+                case ScaleField.LocalScaleY:
+                    return scaleLocalScaleY;
+                case ScaleField.LayoutSpacing:
+                    return scaleLayoutSpacing;
+                default:
+                    return false;
+            }
+        }
+
+        private string GetScaleFieldDisplayName(ScaleField scaleField)
+        {
+            switch (scaleField)
+            {
+                case ScaleField.PosX:
+                    return "Pos X";
+                case ScaleField.PosY:
+                    return "Pos Y";
+                case ScaleField.Width:
+                    return "Width";
+                case ScaleField.Height:
+                    return "Height";
+                case ScaleField.LeftAndRight:
+                    return "Left & Right";
+                case ScaleField.TopAndBottom:
+                    return "Top & Bottom";
+                case ScaleField.LocalScaleX:
+                    return "Scale X";
+                case ScaleField.LocalScaleY:
+                    return "Scale Y";
+                case ScaleField.LayoutSpacing:
+                    return "Layout Spacing";
+                default:
+                    return scaleField.ToString();
             }
         }
 

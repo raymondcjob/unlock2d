@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f764f216df4540d49a50f57ce72093c2, type: 3}
+  m_Name: TileSpriteLibrary
+  m_EditorClassIdentifier: Assembly-CSharp::TileSpriteLibrary
+  tileSprites:
+  - {fileID: -7042779509663589103, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: -1977337795, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: -1198824304, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: 416221969, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: -1891514072, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: 883327976, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: 126677364, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: -1411768739, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: 1457347713, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: 599257866, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: 885984910, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: -80847358, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: 217230224, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: 1109053238, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: -1289803548, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: 2098310971, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: -2125695111, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: -1733418562, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: -217080503, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: 569542697, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: -205627320, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: 336530688, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: -724725400, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: -316571316, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: -1313263767, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: 490138662, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: -1573720148, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: -350632782, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: 38599298, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: -1010420725, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: -1291411799, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: -145991611, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: 389307573, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  - {fileID: 1169827745, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
+  backTileSprite: {fileID: -1151694268, guid: 168b56839fa777d448f71eff00c4df16, type: 3}
