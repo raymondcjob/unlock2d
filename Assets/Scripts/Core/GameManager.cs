@@ -28,6 +28,7 @@ public class GameManager : MonoBehaviour
     private bool isLoadingGame;
     private bool hasBoardProgress;
     private bool ignoreNextStableBoardStateChanged;
+    private bool pendingInventorySaveRequest;
 
     [Serializable]
     private sealed class SaveGameData
@@ -227,7 +228,7 @@ public class GameManager : MonoBehaviour
 
         if (itemInventory != null)
         {
-            itemInventory.OnInventoryChanged += HandleInventoryChanged;
+            itemInventory.OnInventorySaveRequested += HandleInventorySaveRequested;
         }
     }
 
@@ -247,7 +248,7 @@ public class GameManager : MonoBehaviour
 
         if (itemInventory != null)
         {
-            itemInventory.OnInventoryChanged -= HandleInventoryChanged;
+            itemInventory.OnInventorySaveRequested -= HandleInventorySaveRequested;
         }
     }
 
@@ -308,8 +309,14 @@ public class GameManager : MonoBehaviour
         Autosave();
     }
 
-    private void HandleInventoryChanged()
+    private void HandleInventorySaveRequested()
     {
+        if (isLoadingGame)
+        {
+            pendingInventorySaveRequest = true;
+            return;
+        }
+
         Autosave();
     }
 
@@ -373,6 +380,13 @@ public class GameManager : MonoBehaviour
         uiManager?.RestoreTimerState(saveData.ElapsedSeconds, saveData.IsTimerRunning);
         hasBoardProgress = true;
         isLoadingGame = false;
+
+        if (pendingInventorySaveRequest || itemInventory.ConsumePendingSaveRequest())
+        {
+            pendingInventorySaveRequest = false;
+            SaveGame();
+        }
+
         return true;
     }
 }

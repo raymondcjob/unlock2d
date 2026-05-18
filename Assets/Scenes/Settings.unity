@@ -1364,7 +1364,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 585, y: 877.5}
+  m_SizeDelta: {x: 480, y: 720}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &361232509
 MonoBehaviour:
@@ -1472,8 +1472,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 9.75, y: -34.125}
-  m_SizeDelta: {x: 341.25, y: 73.125}
+  m_AnchoredPosition: {x: 8, y: -28}
+  m_SizeDelta: {x: 280, y: 60}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &396686086
 MonoBehaviour:
@@ -1899,7 +1899,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 219.375, y: 50}
+  m_SizeDelta: {x: 180, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1008758009
 MonoBehaviour:
@@ -2598,8 +2598,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 9.75, y: 0}
-  m_SizeDelta: {x: 341.25, y: 243.75}
+  m_AnchoredPosition: {x: 8, y: 0}
+  m_SizeDelta: {x: 280, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1358921910
 MonoBehaviour:
@@ -2619,7 +2619,7 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 4
-  m_Spacing: 50
+  m_Spacing: 40
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 1
   m_ChildControlWidth: 1
@@ -2659,6 +2659,10 @@ MonoBehaviour:
   - scaleField: 3
     baseResolution: 1080
     fieldValue: 250
+    optionalValue: 0
+  - scaleField: 8
+    baseResolution: 1080
+    fieldValue: 50
     optionalValue: 0
   useUniformScale: 1
   scaleLayoutSpacing: 1
@@ -3526,7 +3530,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 219.375, y: 50}
+  m_SizeDelta: {x: 180, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1874654107
 MonoBehaviour:
@@ -3716,7 +3720,7 @@ MonoBehaviour:
   languageSelectionPanel: {fileID: 300000000}
   musicButton: {fileID: 1181201067}
   soundButton: {fileID: 1452701031}
-  hintButton: {fileID: 0}
+  hintButton: {fileID: 444332496}
   themesButton: {fileID: 53109197}
   languagesButton: {fileID: 1367095894}
   backButton: {fileID: 1181050081}

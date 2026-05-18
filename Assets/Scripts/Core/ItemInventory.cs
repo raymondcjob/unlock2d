@@ -4,14 +4,10 @@ using UnityEngine;
 public class ItemInventory : MonoBehaviour
 {
     private const int DebugModeItemCount = 99;
+    private const int CurrentSaveDataVersion = 1;
 
     [Header("References")]
     [SerializeField] private DebugSettings debugSettings;
-
-    [Header("Starting Counts")]
-    [SerializeField] private int startingUndoCount;
-    [SerializeField] private int startingShuffleCount;
-    [SerializeField] private int startingSwapCount;
 
     private int undoUses;
     private int shuffleUses;
@@ -19,22 +15,28 @@ public class ItemInventory : MonoBehaviour
     private int playerUndoUses;
     private int playerShuffleUses;
     private int playerSwapUses;
+    private int coins;
+    private int gems;
     private bool lastRequestedDebugMode;
     private bool suppressDebugMode;
+    private bool hasPendingSaveRequest;
 
     public event Action OnInventoryChanged;
+    public event Action OnInventorySaveRequested;
 
     [Serializable]
     public sealed class SaveData
     {
+        public int DataVersion;
         public int UndoUses;
         public int ShuffleUses;
         public int SwapUses;
+        public int Coins;
+        public int Gems;
     }
 
     private void Awake()
     {
-        ResetForFreshBoard();
         lastRequestedDebugMode = IsDebugModeRequested();
         SyncDebugInventoryState(notifyListeners: false);
     }
@@ -53,7 +55,6 @@ public class ItemInventory : MonoBehaviour
 
     public void ResetForFreshBoard()
     {
-        SetPlayerInventoryCounts(startingUndoCount, startingShuffleCount, startingSwapCount);
         SyncDebugInventoryState(notifyListeners: true);
     }
 
@@ -94,13 +95,12 @@ public class ItemInventory : MonoBehaviour
 
     public void ConsumeUndoUse()
     {
-        if (undoUses <= 0)
+        if (!TryConsumeUse(ref undoUses, ref playerUndoUses))
         {
             return;
         }
 
-        undoUses--;
-        OnInventoryChanged?.Invoke();
+        NotifyInventoryChanged(requestSave: true);
     }
 
     public void AddUndoUses(int amount)
@@ -112,6 +112,7 @@ public class ItemInventory : MonoBehaviour
 
         playerUndoUses += amount;
         SyncDebugInventoryState(notifyListeners: true);
+        RequestSave();
     }
 
     public void AddShuffleUses(int amount)
@@ -123,6 +124,7 @@ public class ItemInventory : MonoBehaviour
 
         playerShuffleUses += amount;
         SyncDebugInventoryState(notifyListeners: true);
+        RequestSave();
     }
 
     public void AddSwapUses(int amount)
@@ -134,28 +136,27 @@ public class ItemInventory : MonoBehaviour
 
         playerSwapUses += amount;
         SyncDebugInventoryState(notifyListeners: true);
+        RequestSave();
     }
 
     public void ConsumeShuffleUse()
     {
-        if (shuffleUses <= 0)
+        if (!TryConsumeUse(ref shuffleUses, ref playerShuffleUses))
         {
             return;
         }
 
-        shuffleUses--;
-        OnInventoryChanged?.Invoke();
+        NotifyInventoryChanged(requestSave: true);
     }
 
     public void ConsumeSwapUse()
     {
-        if (swapUses <= 0)
+        if (!TryConsumeUse(ref swapUses, ref playerSwapUses))
         {
             return;
         }
 
-        swapUses--;
-        OnInventoryChanged?.Invoke();
+        NotifyInventoryChanged(requestSave: true);
     }
 
     public string GetUndoDisplayText()
@@ -177,9 +178,12 @@ public class ItemInventory : MonoBehaviour
     {
         return new SaveData
         {
+            DataVersion = CurrentSaveDataVersion,
             UndoUses = playerUndoUses,
             ShuffleUses = playerShuffleUses,
-            SwapUses = playerSwapUses
+            SwapUses = playerSwapUses,
+            Coins = coins,
+            Gems = gems
         };
     }
 
@@ -187,12 +191,32 @@ public class ItemInventory : MonoBehaviour
     {
         if (saveData == null)
         {
+            SetPlayerInventoryCounts(0, 0, 0);
+            coins = 0;
+            gems = 0;
+            lastRequestedDebugMode = IsDebugModeRequested();
+            SyncDebugInventoryState(notifyListeners: true);
+            RequestSave();
             return;
         }
 
         SetPlayerInventoryCounts(saveData.UndoUses, saveData.ShuffleUses, saveData.SwapUses);
+        coins = Mathf.Max(0, saveData.Coins);
+        gems = Mathf.Max(0, saveData.Gems);
         lastRequestedDebugMode = IsDebugModeRequested();
         SyncDebugInventoryState(notifyListeners: true);
+
+        if (saveData.DataVersion < CurrentSaveDataVersion)
+        {
+            RequestSave();
+        }
+    }
+
+    public bool ConsumePendingSaveRequest()
+    {
+        bool shouldSave = hasPendingSaveRequest;
+        hasPendingSaveRequest = false;
+        return shouldSave;
     }
 
     private string GetDisplayText(int uses)
@@ -210,6 +234,23 @@ public class ItemInventory : MonoBehaviour
         playerUndoUses = Mathf.Max(0, undoCount);
         playerShuffleUses = Mathf.Max(0, shuffleCount);
         playerSwapUses = Mathf.Max(0, swapCount);
+    }
+
+    private bool TryConsumeUse(ref int runtimeCount, ref int playerCount)
+    {
+        if (runtimeCount <= 0)
+        {
+            return false;
+        }
+
+        runtimeCount--;
+
+        if (!IsDebugModeRequested())
+        {
+            playerCount = Mathf.Max(0, playerCount - 1);
+        }
+
+        return true;
     }
 
     private void SyncDebugInventoryState(bool notifyListeners)
@@ -231,8 +272,24 @@ public class ItemInventory : MonoBehaviour
 
         if (notifyListeners)
         {
-            OnInventoryChanged?.Invoke();
+            NotifyInventoryChanged(requestSave: false);
         }
+    }
+
+    private void NotifyInventoryChanged(bool requestSave)
+    {
+        OnInventoryChanged?.Invoke();
+
+        if (requestSave)
+        {
+            RequestSave();
+        }
+    }
+
+    private void RequestSave()
+    {
+        hasPendingSaveRequest = true;
+        OnInventorySaveRequested?.Invoke();
     }
 
 }
